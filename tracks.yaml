@@ -46,4 +46,4 @@ tracks:
     ros_distro: melodic
     vcs_type: git
     vcs_uri: https://github.com/IntelRealSense/realsense-ros.git
-    version: 2.2.13
+    version: 2.2.14
