@@ -1,3 +1,29 @@
+## realsense2_camera (eloquent) - 3.0.0-1
+
+The packages in the `realsense2_camera` repository were released into the `eloquent` distro by running `/usr/bin/bloom-release --ros-distro eloquent realsense2_camera --new-track` on `Wed, 16 Sep 2020 08:47:14 -0000`
+
+These packages were released:
+- `realsense2_camera`
+- `realsense2_node`
+- `realsense_camera_msgs`
+
+Version of package(s) in repository `realsense2_camera`:
+
+- upstream repository: https://github.com/IntelRealSense/realsense-ros.git
+- release repository: unknown
+- rosdistro version: `null`
+- old version: `null`
+- new version: `3.0.0-1`
+
+Versions of tools used:
+
+- bloom version: `0.9.8`
+- catkin_pkg version: `0.4.22`
+- rosdep version: `0.19.0`
+- rosdistro version: `0.8.2`
+- vcstools version: `0.1.42`
+
+
 ## realsense2_camera (melodic) - 2.2.17-1
 
 The packages in the `realsense2_camera` repository were released into the `melodic` distro by running `/usr/bin/bloom-release --ros-distro melodic realsense2_camera --edit` on `Wed, 09 Sep 2020 07:30:10 -0000`
