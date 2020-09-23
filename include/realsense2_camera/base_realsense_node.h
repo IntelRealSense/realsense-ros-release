@@ -7,7 +7,7 @@
 
 #include <librealsense2/rs.hpp>
 #include <librealsense2/rsutil.h>
-#include "constants.h"
+#include "realsense2_camera/constants.h"
 #include <cv_bridge/cv_bridge.h>
 
 #include <diagnostic_updater/diagnostic_updater.hpp>
@@ -146,7 +146,6 @@ namespace realsense2_camera
                 }
         };
 
-        rclcpp::Clock _ros_clock;
         std::string _base_frame_id;
         std::string _odom_frame_id;
         std::map<stream_index_pair, std::string> _frame_id;
