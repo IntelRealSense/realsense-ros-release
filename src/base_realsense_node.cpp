@@ -146,29 +146,61 @@ BaseRealSenseNode::~BaseRealSenseNode()
         std::pair< std::set<std::string>::iterator, bool> res = module_names.insert(module_name);
         if (res.second)
         {
-            _sensors[profile.first].stop();
-            _sensors[profile.first].close();
+            try
+            {
+                _sensors[profile.first].stop();
+                _sensors[profile.first].close();
+            }
+            catch(const rs2::wrong_api_call_sequence_error& e)
+            {
+            }
         }
     }
 }
 
 void BaseRealSenseNode::toggleSensors(bool enabled)
 {
-    for (auto it=_sensors.begin(); it != _sensors.end(); it++)
+  if(enabled)
+  {
+    std::map<std::string, std::vector<rs2::stream_profile> > profiles;
+    std::map<std::string, rs2::sensor> active_sensors;
+    for (const std::pair<stream_index_pair, std::vector<rs2::stream_profile>>& profile : _enabled_profiles)
     {
-        auto& sens = _sensors[it->first];
-        try
+        std::string module_name = _sensors[profile.first].get_info(RS2_CAMERA_INFO_NAME);
+        ROS_INFO_STREAM("insert " << rs2_stream_to_string(profile.second.begin()->stream_type())
+          << " to " << module_name);
+        profiles[module_name].insert(profiles[module_name].begin(),
+                                        profile.second.begin(),
+                                        profile.second.end());
+        active_sensors[module_name] = _sensors[profile.first];
+    }
+
+    for (const std::pair<std::string, std::vector<rs2::stream_profile> >& sensor_profile : profiles)
+    {
+        std::string module_name = sensor_profile.first;
+        rs2::sensor sensor = active_sensors[module_name];
+        sensor.open(sensor_profile.second);
+        sensor.start(_sensors_callback[module_name]);
+        if (sensor.is<rs2::depth_sensor>())
         {
-            if (enabled)
-                sens.start(_syncer);
-            else
-                sens.stop();
-        }
-        catch(const rs2::wrong_api_call_sequence_error& ex)
-        {
-            ROS_DEBUG_STREAM("toggleSensors: " << ex.what());
+            _depth_scale_meters = sensor.as<rs2::depth_sensor>().get_depth_scale();
         }
     }
+  }
+  else
+  {
+    std::set<std::string> module_names;
+    for (const std::pair<stream_index_pair, std::vector<rs2::stream_profile>>& profile : _enabled_profiles)
+    {
+        std::string module_name = _sensors[profile.first].get_info(RS2_CAMERA_INFO_NAME);
+        std::pair< std::set<std::string>::iterator, bool> res = module_names.insert(module_name);
+        if (res.second)
+        {
+            _sensors[profile.first].stop();
+            _sensors[profile.first].close();
+        }
+    }
+  }
 }
 
 void BaseRealSenseNode::setupErrorCallback()
@@ -445,6 +477,13 @@ void BaseRealSenseNode::registerDynamicOption(ros::NodeHandle& nh, rs2::options 
                         sensor.set_option(option, option_value);
                     }
                 }
+                if (option_value < op_range.min || op_range.max < option_value)
+                {
+                    ROS_WARN_STREAM("Param '" << nh1.resolveName(option_name) << "' has value " << option_value
+                                            << " that is not in range [" << op_range.min << ", " << op_range.max << "]"
+                                            << ". Removing this parameter from dynamic reconfigure options.");
+                    continue;
+                }
                 if (is_int_option(sensor, option))
                 {
                 ddynrec->registerVariable<int>(
@@ -494,6 +533,16 @@ void BaseRealSenseNode::registerDynamicOption(ros::NodeHandle& nh, rs2::options 
                     {
                         sensor.set_option(option, option_value);
                     }
+                }
+                if (std::find_if(enum_dict.cbegin(), enum_dict.cend(),
+                                    [&option_value](const std::pair<std::string, int>& kv) {
+                                        return kv.second == option_value;
+                                    }) == enum_dict.cend())
+                {
+                    ROS_WARN_STREAM("Param '" << nh1.resolveName(option_name) << "' has value " << option_value
+                                            << " that is not in the enum " << enum_dict
+                                            << ". Removing this parameter from dynamic reconfigure options.");
+                    continue;
                 }
                 ddynrec->registerEnumVariable<int>(
                     option_name, option_value,
@@ -908,9 +957,18 @@ void BaseRealSenseNode::publishAlignedDepthToOthers(rs2::frameset frames, const 
                 align = (_align[stream_type] = std::make_shared<rs2::align>(stream_type));
             }
             rs2::frameset processed = frames.apply_filter(*align);
-            rs2::depth_frame aligned_depth_frame = processed.get_depth_frame();
+            std::vector<rs2::frame> frames_to_publish;
+            frames_to_publish.push_back(processed.get_depth_frame());   // push_back(aligned_depth_frame)
+            for (std::vector<NamedFilter>::const_iterator filter_it = _filters.begin(); filter_it != _filters.end(); filter_it++)
+            {
+                if (filter_it->_name == "colorizer")
+                {
+                    frames_to_publish.push_back(filter_it->_filter->process(frames_to_publish.back()));  //push_back(colorized)
+                    break;
+                }
+            }
 
-            publishFrame(aligned_depth_frame, t, sip,
+            publishFrame(frames_to_publish.back(), t, sip,
                          _depth_aligned_image,
                          _depth_aligned_info_publisher,
                          _depth_aligned_image_publishers, _depth_aligned_seq,
@@ -1084,6 +1142,9 @@ void BaseRealSenseNode::setupFilters()
         _image_format[DEPTH.first] = _image_format[COLOR.first];    // CVBridge type
         _encoding[DEPTH.first] = _encoding[COLOR.first]; // ROS message type
         _unit_step_size[DEPTH.first] = _unit_step_size[COLOR.first]; // sensor_msgs::ImagePtr row step size
+        _depth_aligned_encoding[RS2_STREAM_INFRARED] = _encoding[COLOR.first]; // ROS message type
+        _depth_aligned_encoding[RS2_STREAM_COLOR] = _encoding[COLOR.first]; // ROS message type
+        _depth_aligned_encoding[RS2_STREAM_FISHEYE] = _encoding[COLOR.first]; // ROS message type
 
         _width[DEPTH] = _width[COLOR];
         _height[DEPTH] = _height[COLOR];
@@ -1096,8 +1157,6 @@ void BaseRealSenseNode::setupFilters()
     }
     ROS_INFO("num_filters: %d", static_cast<int>(_filters.size()));
 }
-
-
 
 cv::Mat& BaseRealSenseNode::fix_depth_scale(const cv::Mat& from_image, cv::Mat& to_image)
 {
@@ -2093,6 +2152,11 @@ void BaseRealSenseNode::publishPointCloud(rs2::points pc, const ros::Time& t, co
     }
     else
     {
+        std::string format_str = "intensity";
+        _msg_pointcloud.point_step = addPointField(_msg_pointcloud, format_str.c_str(), 1, sensor_msgs::PointField::FLOAT32, _msg_pointcloud.point_step);
+        _msg_pointcloud.row_step = _msg_pointcloud.width * _msg_pointcloud.point_step;
+        _msg_pointcloud.data.resize(_msg_pointcloud.height * _msg_pointcloud.row_step);
+
         sensor_msgs::PointCloud2Iterator<float>iter_x(_msg_pointcloud, "x");
         sensor_msgs::PointCloud2Iterator<float>iter_y(_msg_pointcloud, "y");
         sensor_msgs::PointCloud2Iterator<float>iter_z(_msg_pointcloud, "z");
