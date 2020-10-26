@@ -1,3 +1,28 @@
+## realsense2_camera (kinetic) - 2.2.18-1
+
+The packages in the `realsense2_camera` repository were released into the `kinetic` distro by running `/usr/bin/bloom-release --ros-distro kinetic realsense2_camera --edit` on `Mon, 26 Oct 2020 12:28:27 -0000`
+
+These packages were released:
+- `realsense2_camera`
+- `realsense2_description`
+
+Version of package(s) in repository `realsense2_camera`:
+
+- upstream repository: https://github.com/IntelRealSense/realsense-ros.git
+- release repository: https://github.com/IntelRealSense/realsense-ros-release.git
+- rosdistro version: `2.2.17-1`
+- old version: `2.2.17-1`
+- new version: `2.2.18-1`
+
+Versions of tools used:
+
+- bloom version: `0.10.0`
+- catkin_pkg version: `0.4.22`
+- rosdep version: `0.19.0`
+- rosdistro version: `0.8.2`
+- vcstools version: `0.1.42`
+
+
 ## realsense2_camera (eloquent) - 3.1.1-1
 
 The packages in the `realsense2_camera` repository were released into the `eloquent` distro by running `/usr/bin/bloom-release --ros-distro eloquent realsense2_camera --edit` on `Wed, 23 Sep 2020 03:16:18 -0000`
