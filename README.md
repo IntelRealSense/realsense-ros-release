@@ -1,7 +1,7 @@
 # ROS Wrapper for Intel&reg; RealSense&trade; Devices
-These are packages for using Intel RealSense cameras (D400 series SR300 camera and T265 Tracking Module) with ROS.
+These are packages for using Intel RealSense cameras (D400 series SR300 camera and T265 Tracking Module) with ROS. For running in ROS2 environment please switch to the [eloquent branch](https://github.com/IntelRealSense/realsense-ros/tree/eloquent)
 
-LibRealSense supported version: v2.38.1 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
+LibRealSense supported version: v2.39.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
 
 ## Installation Instructions
 
@@ -65,7 +65,7 @@ The following instructions are written for ROS Kinetic, on **Ubuntu 16.04** but 
         `vcpkg install realsense2:x64-windows` 
 
    #### OR
-   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.38.1) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
+   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.39.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
 
 
    ### Step 2: Install Intel&reg; RealSense&trade; ROS from Sources
@@ -77,7 +77,7 @@ The following instructions are written for ROS Kinetic, on **Ubuntu 16.04** but 
    ```
    *Windows*
    ```batch
-   mkdir c:\catkin_wssrc
+   mkdir c:\catkin_ws\src
    cd c:\catkin_ws\src
    ```
 
@@ -85,7 +85,7 @@ The following instructions are written for ROS Kinetic, on **Ubuntu 16.04** but 
    ```bashrc
    git clone https://github.com/IntelRealSense/realsense-ros.git
    cd realsense-ros/
-   git checkout `git tag | sort -V | grep -P "^\d+\.\d+\.\d+" | tail -1`
+   git checkout `git tag | sort -V | grep -P "^2.\d+\.\d+" | tail -1`
    cd ..
    ```
    - Make sure all dependent packages are installed. You can check .travis.yml file for reference.
@@ -177,8 +177,8 @@ The topics are of the form: ```/camera/aligned_depth_to_color/image_raw``` etc.
 - **All the rest of the frame_ids can be found in the template launch file: [nodelet.launch.xml](./realsense2_camera/launch/includes/nodelet.launch.xml)**
 - **unite_imu_method**: The D435i and T265 cameras have built in IMU components which produce 2 unrelated streams: *gyro* - which shows angular velocity and *accel* which shows linear acceleration. Each with it's own frequency. By default, 2 corresponding topics are available, each with only the relevant fields of the message sensor_msgs::Imu are filled out.
 Setting *unite_imu_method* creates a new topic, *imu*, that replaces the default *gyro* and *accel* topics. The *imu* topic is published at the rate of the gyro. All the fields of the Imu message under the *imu* topic are filled out.
- - **linear_interpolation**: Every gyro message is attached by the an accel message interpolated to the gyro's timestamp.
- - **copy**: Every gyro message is attached by the last accel message.
+   - **linear_interpolation**: Every gyro message is attached by the an accel message interpolated to the gyro's timestamp.
+   - **copy**: Every gyro message is attached by the last accel message.
 - **clip_distance**: remove from the depth image all values above a given value (meters). Disable by giving negative value (default)
 - **linear_accel_cov**, **angular_velocity_cov**: sets the variance given to the Imu readings. For the T265, these values are being modified by the inner confidence value.
 - **hold_back_imu_for_frames**: Images processing takes time. Therefor there is a time gap between the moment the image arrives at the wrapper and the moment the image is published to the ROS environment. During this time, Imu messages keep on arriving and a situation is created where an image with earlier timestamp is published after Imu message with later timestamp. If that is a problem, setting *hold_back_imu_for_frames* to *true* will hold the Imu messages back while processing the images and then publish them all in a burst, thus keeping the order of publication as the order of arrival. Note that in either case, the timestamp in each message's header reflects the time of it's origin.
@@ -189,8 +189,8 @@ Setting *unite_imu_method* creates a new topic, *imu*, that replaces the default
 - **publish_odom_tf**: If True (default) publish TF from odom_frame to pose_frame.
 
 
-### RGBD Point Cloud
-Here is an example of how to start the camera node and make it publish the RGBD point cloud using aligned depth topic.
+### Point Cloud
+Here is an example of how to start the camera node and make it publish the point cloud using the pointcloud option.
 ```bash
 roslaunch realsense2_camera rs_camera.launch filters:=pointcloud
 ```
