@@ -87,6 +87,7 @@ BaseRealSenseNode::BaseRealSenseNode(ros::NodeHandle& nodeHandle,
     _namespace(getNamespaceStr())
 {
     // Types for depth stream
+    _format[RS2_STREAM_DEPTH] = RS2_FORMAT_Z16;
     _image_format[RS2_STREAM_DEPTH] = CV_16UC1;    // CVBridge type
     _encoding[RS2_STREAM_DEPTH] = sensor_msgs::image_encodings::TYPE_16UC1; // ROS message type
     _unit_step_size[RS2_STREAM_DEPTH] = sizeof(uint16_t); // sensor_msgs::ImagePtr row step size
@@ -602,6 +603,18 @@ void BaseRealSenseNode::getParameters()
 {
     ROS_INFO("getParameters...");
 
+    // Setup system to use RGB image from the infra stream if configured by user
+    bool infra_rgb;
+    _pnh.param("infra_rgb", infra_rgb, false);
+    if (infra_rgb)
+    {
+      _format[RS2_STREAM_INFRARED] = RS2_FORMAT_RGB8;
+      _image_format[RS2_STREAM_INFRARED] = CV_8UC3;    // CVBridge type
+      _encoding[RS2_STREAM_INFRARED] = sensor_msgs::image_encodings::RGB8; // ROS message type
+      _unit_step_size[RS2_STREAM_INFRARED] = 3 * sizeof(uint8_t); // sensor_msgs::ImagePtr row step size
+      ROS_INFO_STREAM("Infrared RGB stream enabled");
+    }
+
     _pnh.param("align_depth", _align_depth, ALIGN_DEPTH);
     _pnh.param("enable_pointcloud", _pointcloud, POINTCLOUD);
     std::string pc_texture_stream("");
@@ -990,7 +1003,7 @@ void BaseRealSenseNode::enable_devices()
             {
                 auto video_profile = profile.as<rs2::video_stream_profile>();
                 ROS_DEBUG_STREAM("Sensor profile: " <<
-                                    "stream_type: " << rs2_stream_to_string(elem.first) << "(" << elem.second << ")" <<
+                                    "stream_type: " << rs2_stream_to_string(video_profile.stream_type()) << "(" << video_profile.stream_index() << ")" <<
                                     "Format: " << video_profile.format() <<
                                     ", Width: " << video_profile.width() <<
                                     ", Height: " << video_profile.height() <<
@@ -1022,7 +1035,8 @@ void BaseRealSenseNode::enable_devices()
                     ", Stream Index: " << elem.second <<
                     ", Width: " << _width[elem] <<
                     ", Height: " << _height[elem] <<
-                    ", FPS: " << _fps[elem]);
+                    ", FPS: " << _fps[elem] << 
+                    ", Format: " << ((_format.find(elem.first) == _format.end())? "None":rs2_format_to_string(rs2_format(_format[elem.first]))));
                 _enable[elem] = false;
             }
         }
@@ -1714,6 +1728,9 @@ void BaseRealSenseNode::setupStreams()
 {
 	ROS_INFO("setupStreams...");
     try{
+        std::shared_ptr<rs2::video_stream_profile> left_profile;
+        std::shared_ptr<rs2::video_stream_profile> right_profile;
+
 		// Publish image stream info
         for (auto& profiles : _enabled_profiles)
         {
@@ -1723,8 +1740,16 @@ void BaseRealSenseNode::setupStreams()
                 {
                     auto video_profile = profile.as<rs2::video_stream_profile>();
                     updateStreamCalibData(video_profile);
+
+                    // stream index: 1=left, 2=right
+                    if (video_profile.stream_index() == 1) { left_profile = std::make_shared<rs2::video_stream_profile>(video_profile); }
+                    if (video_profile.stream_index() == 2) { right_profile = std::make_shared<rs2::video_stream_profile>(video_profile);  }
                 }
             }
+        }
+
+        if (left_profile && right_profile) {
+            updateExtrinsicsCalibData(*left_profile, *right_profile);
         }
 
         // Streaming IMAGES
@@ -1835,6 +1860,59 @@ void BaseRealSenseNode::updateStreamCalibData(const rs2::video_stream_profile& v
             }
         }
     }
+}
+
+void BaseRealSenseNode::updateExtrinsicsCalibData(const rs2::video_stream_profile& left_video_profile, const rs2::video_stream_profile& right_video_profile)
+{
+    stream_index_pair left{left_video_profile.stream_type(), left_video_profile.stream_index()};
+    stream_index_pair right{right_video_profile.stream_type(), right_video_profile.stream_index()};
+
+    // Get the relative extrinsics between the left and right camera
+    auto LEFT_T_RIGHT = right_video_profile.get_extrinsics_to(left_video_profile);
+
+    auto R = Eigen::Map<Eigen::Matrix<float,3,3,Eigen::RowMajor>>(LEFT_T_RIGHT.rotation);
+    auto T = Eigen::Map<Eigen::Matrix<float,3,1>>(LEFT_T_RIGHT.translation);
+
+    // force y- and z-axis components to be 0   (but do we also need to force P(0,3) and P(1,3) to be 0?)
+    T[1] = 0;
+    T[2] = 0;
+
+    Eigen::Matrix<float,3,4,Eigen::RowMajor> RT;
+    RT << R, T;
+
+    auto K_right = Eigen::Map<Eigen::Matrix<double,3,3,Eigen::RowMajor>>(_camera_info[right].K.data());
+
+    // Compute Projection matrix for the right camera
+    auto P_right = K_right.cast<float>() * RT;
+
+    // Note that all matrices are stored in row-major format
+    // 1. Leave the left rotation matrix as identity
+    // 2. Set the right rotation matrix
+    _camera_info[right].R.at(0) = LEFT_T_RIGHT.rotation[0];
+    _camera_info[right].R.at(1) = LEFT_T_RIGHT.rotation[1];
+    _camera_info[right].R.at(2) = LEFT_T_RIGHT.rotation[2];
+    _camera_info[right].R.at(3) = LEFT_T_RIGHT.rotation[3];
+    _camera_info[right].R.at(4) = LEFT_T_RIGHT.rotation[4];
+    _camera_info[right].R.at(5) = LEFT_T_RIGHT.rotation[5];
+    _camera_info[right].R.at(6) = LEFT_T_RIGHT.rotation[6];
+    _camera_info[right].R.at(7) = LEFT_T_RIGHT.rotation[7];
+    _camera_info[right].R.at(8) = LEFT_T_RIGHT.rotation[8];
+
+    // 3. Leave the left projection matrix
+    // 4. Set the right projection matrix
+    _camera_info[right].P.at(0) = P_right(0,0);
+    _camera_info[right].P.at(1) = P_right(0,1);
+    _camera_info[right].P.at(2) = P_right(0,2);
+    _camera_info[right].P.at(3) = P_right(0,3);
+    _camera_info[right].P.at(4) = P_right(1,0);
+    _camera_info[right].P.at(5) = P_right(1,1);
+    _camera_info[right].P.at(6) = P_right(1,2);
+    _camera_info[right].P.at(7) = P_right(1,3);
+    _camera_info[right].P.at(8) = P_right(2,0);
+    _camera_info[right].P.at(9) = P_right(2,1);
+    _camera_info[right].P.at(10) = P_right(2,2);
+    _camera_info[right].P.at(11) = P_right(2,3);
+
 }
 
 tf::Quaternion BaseRealSenseNode::rotationMatrixToQuaternion(const float rotation[9]) const
@@ -2271,6 +2349,8 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
     ++(seq[stream]);
     auto& info_publisher = info_publishers.at(stream);
     auto& image_publisher = image_publishers.at(stream);
+
+    image_publisher.second->tick();
     if(0 != info_publisher.getNumSubscribers() ||
        0 != image_publisher.first.getNumSubscribers())
     {
@@ -2294,7 +2374,6 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
         info_publisher.publish(cam_info);
 
         image_publisher.first.publish(img);
-        image_publisher.second->update();
         // ROS_INFO_STREAM("fid: " << cam_info.header.seq << ", time: " << std::setprecision (20) << t.toSec());
         ROS_DEBUG("%s stream published", rs2_stream_to_string(f.get_profile().stream_type()));
     }
@@ -2321,7 +2400,7 @@ void BaseRealSenseNode::startMonitoring()
         _temperature_nodes.push_back({option, std::make_shared<TemperatureDiagnostics>(rs2_option_to_string(option), _serial_no )});
     }
 
-    int time_interval(10000);
+    int time_interval(1000);
     std::function<void()> func = [this, time_interval](){
         std::mutex mu;
         std::unique_lock<std::mutex> lock(mu);
@@ -2330,6 +2409,7 @@ void BaseRealSenseNode::startMonitoring()
             if (_is_running)
             {
                 publish_temperature();
+                publish_frequency_update();
             }
         }
     };
@@ -2354,6 +2434,14 @@ void BaseRealSenseNode::publish_temperature()
                 ROS_DEBUG_STREAM("Failed checking for temperature." << std::endl << e.what());
             }
         }
+    }
+}
+
+void BaseRealSenseNode::publish_frequency_update()
+{
+    for (auto &image_publisher : _image_publishers)
+    {
+        image_publisher.second.second->update();
     }
 }
 
