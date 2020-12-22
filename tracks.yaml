@@ -11,7 +11,9 @@ tracks:
     - git-bloom-generate -y rosdebian --prefix release/:{ros_distro} :{ros_distro}
       -i :{release_inc} --os-name debian --os-not-required
     - git-bloom-generate -y rosrpm --prefix release/:{ros_distro} :{ros_distro} -i
-      :{release_inc}
+      :{release_inc} --os-name fedora
+    - git-bloom-generate -y rosrpm --prefix release/:{ros_distro} :{ros_distro} -i
+      :{release_inc} --os-name rhel
     devel_branch: development
     last_version: 3.1.1
     name: upstream
@@ -22,7 +24,7 @@ tracks:
     ros_distro: eloquent
     vcs_type: git
     vcs_uri: https://github.com/IntelRealSense/realsense-ros.git
-    version: 3.1.1
+    version: 3.1.2
   kinetic:
     actions:
     - bloom-export-upstream :{vcs_local_uri} :{vcs_type} --tag :{release_tag} --display-uri
