@@ -1,7 +1,7 @@
 # ROS2 Wrapper for Intel&reg; RealSense&trade; Devices
 These are packages for using Intel RealSense cameras (D400 and L500 series, SR300 camera and T265 Tracking Module) with ROS2.
 
-LibRealSense supported version: v2.38.1 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
+LibRealSense supported version: v2.40.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
 
 ## Installation Instructions
 This version supports ROS2 eloquent on Ubuntu 18.04.
@@ -33,7 +33,7 @@ This version supports ROS2 eloquent on Ubuntu 18.04.
    - #### Install from [Debian Package](https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_linux.md#installing-the-packages) - In that case treat yourself as a developer. Make sure you follow the instructions to also install librealsense2-dev and librealsense-dkms packages.
 
    #### OR
-   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.38.1) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
+   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.40.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
 
 
    ### Step 3: Install Intel&reg; RealSense&trade; ROS2 wrapper from Sources
@@ -73,46 +73,52 @@ This version supports ROS2 eloquent on Ubuntu 18.04.
 To start the camera node in ROS:
 
 ```bash
-  ros2 run realsense2_node realsense2_node 
+  ros2 launch realsense2_camera rs_launch.py
 ```
-or, with parameters, for example - pointcloud enabled:
+or, with parameters specified in rs_launch.py, for example - pointcloud enabled:
 ```bash
-ros2 run realsense2_node realsense2_node --ros-args -p filters:=pointcloud -p 
+ros2 launch realsense2_camera rs_launch.py enable_pointcloud:=true device_type:=d435
 ```
+or, without using the supplement launch files:
+```bash
+ros2 run realsense2_node realsense2_node --ros-args -p filters:=colorizer
+```
+
 
 This will stream all camera sensors and publish on the appropriate ROS topics.
 
 ### Published Topics
 The published topics differ according to the device and parameters.
 After running the above command with D435i attached, the following list of topics will be available (This is a partial list. For full one type `ros2 topic list`):
-- /camera1/accel/imu_info
-- /camera1/color/camera_info
-- /camera1/color/image_raw
-- /camera1/depth/camera_info
-- /camera1/depth/color/points
-- /camera1/depth/image_rect_raw
-- /camera1/extrinsics/depth_to_color
-- /camera1/extrinsics/depth_to_infra1
-- /camera1/extrinsics/depth_to_infra2
-- /camera1/gyro/imu_info
-- /camera1/imu
-- /camera1/infra1/camera_info
-- /camera1/infra1/image_rect_raw
-- /camera1/infra2/camera_info
-- /camera1/infra2/image_rect_raw
-- /camera1/parameter_events
-- /camera1/rosout
+- /camera/accel/imu_info
+- /camera/color/camera_info
+- /camera/color/image_raw
+- /camera/depth/camera_info
+- /camera/depth/color/points
+- /camera/depth/image_rect_raw
+- /camera/extrinsics/depth_to_color
+- /camera/extrinsics/depth_to_infra1
+- /camera/extrinsics/depth_to_infra2
+- /camera/gyro/imu_info
+- /camera/imu
+- /camera/infra1/camera_info
+- /camera/infra1/image_rect_raw
+- /camera/infra2/camera_info
+- /camera/infra2/image_rect_raw
+- /camera/parameter_events
+- /camera/rosout
 - /parameter_events
 - /rosout
 - /tf_static
 
-The "/camera1" prefix is the namesapce specified in the given launch file.
+The "/camera" prefix is the namesapce specified in the given launch file.
 When using D435 or D415, the gyro and accel topics wont be available. Likewise, other topics will be available when using T265 (see below).
 
 ### Available Parameters:
 For the entire list of parameters type `ros2 param list`.
 
-- **serial_no**: will attach to the device with the given serial number (*serial_no*) number. Default, attach to available RealSense device in random.
+- **serial_no**: will attach to the device with the given serial number (*serial_no*) number. Default, attach to the first (in an inner list) RealSense device.
+  - Note: serial number can also be defined with "_" prefix. For instance, serial number 831612073525 can be set in command line as `serial_no:=_831612073525`. That is a workaround until a better method will be found to ROS2's auto conversion of strings containing only digits into integers.
 - **usb_port_id**: will attach to the device with the given USB port (*usb_port_id*). i.e 4-1, 4-2 etc. Default, ignore USB port when choosing a device.
 - **device_type**: will attach to a device whose name includes the given *device_type* regular expression pattern. Default, ignore device type. For example, device_type:=d435 will match d435 and d435i. device_type=d435(?!i) will match d435 but not d435i.
 
@@ -155,6 +161,10 @@ Setting *unite_imu_method* creates a new topic, *imu*, that replaces the default
 - **publish_tf**: boolean, publish or not TF at all. Defaults to True.
 - **tf_publish_rate**: double, positive values mean dynamic transform publication with specified rate, all other values mean static transform publication. Defaults to 0 
 - **publish_odom_tf**: If True (default) publish TF from odom_frame to pose_frame.
+- **infra_rgb**: When set to True (default: False), it configures the infrared camera to stream in RGB (color) mode, thus enabling the use of a RGB image in the same frame as the depth image, potentially avoiding frame transformation related errors. When this feature is required, you are additionally required to also enable `enable_infra:=true` for the infrared stream to be enabled.
+  - **NOTE** The configuration required for `enable_infra` is independent of `enable_depth`
+  - **NOTE** To enable the Infrared stream, you should enable `enable_infra:=true` NOT `enable_infra1:=true` nor `enable_infra2:=true`
+  - **NOTE** This feature is only supported by Realsense sensors with RGB streams available from the `infra` cameras, which can be checked by observing the output of `rs-enumerate-devices`
 
 ## Using T265 ##
 **Important Notice:** For wheeled robots, odometer input is a requirement for robust and accurate tracking. The relevant APIs will be added to librealsense and ROS/realsense in upcoming releases. Currently, the API is available in the [underlying device driver](https://github.com/IntelRealSense/librealsense/blob/master/third-party/libtm/libtm/include/TrackingDevice.h#L508-L515).
@@ -163,12 +173,15 @@ Setting *unite_imu_method* creates a new topic, *imu*, that replaces the default
 To start the camera node in ROS:
 
 ```bash
-ros2 run realsense2_node realsense2_node --ros-args -p enable_pose:=true -p device_type:=t265 -p fisheye_width:=848 -p fisheye_height:=800
+ros2 run realsense2_camera realsense2_camera_node --ros-args -p enable_pose:=true -p device_type:=t265 -p fisheye_width:=848 -p fisheye_height:=800
 ```
+or, if you also have a d4xx connected, you can try out the launch file:
+```bash
+ros2 launch realsense2_camera rs_d400_and_t265_launch.py enable_fisheye12:=true enable_fisheye22:=true
+```
+- note: the parameters are called `enable_fisheye12` and `enable_fisheye22`. The node knows them as `enable_fisheye1` and `enable_fisheye2` but launch file runs 2 nodes and these parameters refer to the second one.
 
 ## Still on the pipelie:
-* Launch files for running multiple cameras.
-* Import descriptive files (realsense2_description package).
 * Support ROS2 life cycle.
 * Enable and disable sensors and filters.
 
