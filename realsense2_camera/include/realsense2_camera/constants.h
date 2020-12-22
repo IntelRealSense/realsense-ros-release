@@ -5,14 +5,27 @@
 
 #include <string>
 
-#define REALSENSE_ROS_MAJOR_VERSION    2
-#define REALSENSE_ROS_MINOR_VERSION    2
-#define REALSENSE_ROS_PATCH_VERSION    20
+#define REALSENSE_ROS_MAJOR_VERSION    3
+#define REALSENSE_ROS_MINOR_VERSION    1
+#define REALSENSE_ROS_PATCH_VERSION    2
 
 #define STRINGIFY(arg) #arg
 #define VAR_ARG_STRING(arg) STRINGIFY(arg)
 /* Return version in "X.Y.Z" format */
 #define REALSENSE_ROS_VERSION_STR (VAR_ARG_STRING(REALSENSE_ROS_MAJOR_VERSION.REALSENSE_ROS_MINOR_VERSION.REALSENSE_ROS_PATCH_VERSION))
+
+#define ROS_DEBUG(...) RCLCPP_DEBUG(_logger, __VA_ARGS__)
+#define ROS_INFO(...) RCLCPP_INFO(_logger, __VA_ARGS__)
+#define ROS_WARN(...) RCLCPP_WARN(_logger, __VA_ARGS__)
+#define ROS_ERROR(...) RCLCPP_ERROR(_logger, __VA_ARGS__)
+#define ROS_DEBUG_STREAM(msg) RCLCPP_DEBUG_STREAM(_logger, msg)
+#define ROS_INFO_STREAM(msg) RCLCPP_INFO_STREAM(_logger, msg)
+#define ROS_WARN_STREAM(msg) RCLCPP_WARN_STREAM(_logger, msg)
+#define ROS_ERROR_STREAM(msg) RCLCPP_ERROR_STREAM(_logger, msg)
+#define ROS_FATAL_STREAM(msg) RCLCPP_FATAL_STREAM(_logger, msg)
+
+#define ROS_WARN_COND(cond, ...) RCLCPP_WARN_EXPRESSION(_logger, cond, __VA_ARGS__)
+#define ROS_WARN_STREAM_COND(cond, msg) RCLCPP_WARN_STREAM_EXPRESSION(_logger, cond, msg)
 
 namespace realsense2_camera
 {
@@ -51,9 +64,9 @@ namespace realsense2_camera
 
     const int IMAGE_WIDTH     = 640;
     const int IMAGE_HEIGHT    = 480;
-    const int IMAGE_FPS       = 30;
+    const double IMAGE_FPS    = 30;
 
-    const int IMU_FPS         = 0;
+    const double IMU_FPS      = 0;
 
 
     const bool ENABLE_DEPTH   = true;
@@ -94,5 +107,4 @@ namespace realsense2_camera
     const std::string DEFAULT_TOPIC_ODOM_IN            = "";
 
     const float ROS_DEPTH_SCALE = 0.001;
-    using stream_index_pair = std::pair<rs2_stream, int>;
 }  // namespace realsense2_camera

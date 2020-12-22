@@ -2,17 +2,6 @@
 Changelog for package realsense2_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-2.2.20 (2020-11-19)
--------------------
-* Add urdf file for l515
-* Contributors: doronhi
-
-2.2.18 (2020-10-26)
--------------------
-* Feature: Add name to usb_plug to enable multiple copies of usb_plug model.
-* Fix mass of d435 - from lgulich
-* Contributors: Guillaume, doronhi, lgulich
-
 2.2.17 (2020-09-09)
 -------------------
 
@@ -33,6 +22,16 @@ Changelog for package realsense2_description
 * fix use_nominal_extrinsics arg/property
 * add D435i modules, urdf and launchfile
 * Contributors: Marco Camurri, doronhi
+
+3.1.2 (2020-12-10)
+------------------
+* Add urdf for L515.
+* remove librealsense2 and realsense2_camera dependencies
+* Add models for D415, D435, D435i.
+  For visualization, can be presented using view_model.launch.py
+* fix view_d435_model.launch.py and view_d435i_model.launch.py
+  run: ros2 launch realsense2_description view_d435i_model.launch.py
+* Contributors: Ryan Shim, doronhi
 
 2.2.14 (2020-06-18)
 -------------------
