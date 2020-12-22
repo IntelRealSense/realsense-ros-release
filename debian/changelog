@@ -1,0 +1,47 @@
+ros-eloquent-realsense2-camera-msgs (3.1.2-1bionic) bionic; urgency=high
+
+  * remove node package, change msg package name
+  * Contributors: Ryan Shim, doronhi
+
+ -- Doron Hirshberg <doron.hirshberg@intel.com>  Wed, 09 Dec 2020 22:00:00 -0000
+
+ros-eloquent-realsense2-camera-msgs (3.1.1-1bionic) bionic; urgency=high
+
+
+
+ -- Doron Hirshberg <doron.hirshberg@intel.com>  Tue, 22 Sep 2020 21:00:00 -0000
+
+ros-eloquent-realsense2-camera-msgs (3.1.0-1bionic) bionic; urgency=high
+
+
+
+ -- Doron Hirshberg <doron.hirshberg@intel.com>  Tue, 15 Sep 2020 21:00:00 -0000
+
+ros-eloquent-realsense2-camera-msgs (2.0.4-1bionic) bionic; urgency=high
+
+  * update maintainer
+  * 2.0.3
+  * update changelog
+  * Contributors: Chris Ye
+
+ -- Doron Hirshberg <doron.hirshberg@intel.com>  Wed, 29 May 2019 21:00:00 -0000
+
+ros-eloquent-realsense2-camera-msgs (2.0.3-1bionic) bionic; urgency=high
+
+
+
+ -- Doron Hirshberg <doron.hirshberg@intel.com>  Mon, 10 Dec 2018 22:00:00 -0000
+
+ros-eloquent-realsense2-camera-msgs (2.0.2-1bionic) bionic; urgency=high
+
+
+
+ -- Doron Hirshberg <doron.hirshberg@intel.com>  Thu, 06 Dec 2018 22:00:00 -0000
+
+ros-eloquent-realsense2-camera-msgs (1.0.0-1bionic) bionic; urgency=high
+
+
+
+ -- Doron Hirshberg <doron.hirshberg@intel.com>  Tue, 15 Sep 2020 21:00:00 -0000
+
+
