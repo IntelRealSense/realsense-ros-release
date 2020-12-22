@@ -158,6 +158,18 @@ void RealSenseNodeFactory::getDevice(rs2::device_list list)
 				msg += " is NOT found. Will Try again.";
 				ROS_ERROR_STREAM(msg);
 			}
+			else
+			{
+				if (_device.supports(RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR))
+				{
+					std::string usb_type = _device.get_info(RS2_CAMERA_INFO_USB_TYPE_DESCRIPTOR);
+					ROS_INFO_STREAM("Device USB type: " << usb_type);
+					if (usb_type.find("2.") != std::string::npos)
+					{
+						ROS_WARN_STREAM("Device " << _serial_no << " is connected using a " << usb_type << " port. Reduced performance is expected.");
+					}
+				}
+			}
 		}
 	}
 
@@ -251,6 +263,9 @@ void RealSenseNodeFactory::init()
 		_serial_no = declare_parameter("serial_no", rclcpp::ParameterValue("")).get<rclcpp::PARAMETER_STRING>();
 		_usb_port_id = declare_parameter("usb_port_id", rclcpp::ParameterValue("")).get<rclcpp::PARAMETER_STRING>();
 		_device_type = declare_parameter("device_type", rclcpp::ParameterValue("")).get<rclcpp::PARAMETER_STRING>();
+
+		// A ROS2 hack: until a better way is found to avoid auto convertion of strings containing only digits to integers:
+		if (_serial_no.front() == '_') _serial_no = _serial_no.substr(1);	// remove '_' prefix
 
 		std::string rosbag_filename(declare_parameter("rosbag_filename", rclcpp::ParameterValue("")).get<rclcpp::PARAMETER_STRING>());
 		if (!rosbag_filename.empty())
@@ -375,3 +390,5 @@ void RealSenseNodeFactory::tryGetLogSeverity(rs2_log_severity& severity) const
 		}
 	}
 }
+
+RCLCPP_COMPONENTS_REGISTER_NODE(realsense2_camera::RealSenseNodeFactory)
