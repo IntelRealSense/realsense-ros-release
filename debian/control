@@ -1,0 +1,12 @@
+Source: ros-eloquent-realsense2-description
+Section: misc
+Priority: optional
+Maintainer: Doron Hirshberg <doron.hirshberg@intel.com>
+Build-Depends: debhelper (>= 9.0.0), ros-eloquent-ament-cmake, ros-eloquent-ament-lint-auto, ros-eloquent-ament-lint-common, ros-eloquent-rclcpp, ros-eloquent-rclcpp-components, ros-eloquent-realsense-camera-msgs, ros-eloquent-ros-workspace
+Homepage: https://wiki.ros.org/realsense2_camera
+Standards-Version: 3.9.2
+
+Package: ros-eloquent-realsense2-description
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-eloquent-launch-ros, ros-eloquent-rclcpp, ros-eloquent-rclcpp-components, ros-eloquent-realsense-camera-msgs, ros-eloquent-xacro, ros-eloquent-ros-workspace
+Description: RealSense Camera description package for Intel 3D D400 cameras
