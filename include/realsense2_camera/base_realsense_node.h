@@ -15,8 +15,8 @@
 #include <diagnostic_updater/publisher.hpp>
 // #include <nav_msgs/Odometry.h>
 #include <image_transport/image_transport.h>
-#include "realsense_camera_msgs/msg/imu_info.hpp"
-#include "realsense_camera_msgs/msg/extrinsics.hpp"
+#include "realsense2_camera_msgs/msg/imu_info.hpp"
+#include "realsense2_camera_msgs/msg/extrinsics.hpp"
 #include <librealsense2/hpp/rs_processing.hpp>
 #include <librealsense2/rs_advanced_mode.hpp>
 
@@ -40,8 +40,8 @@
 #include <atomic>
 #include <thread>
 
-using realsense_camera_msgs::msg::Extrinsics;
-using realsense_camera_msgs::msg::IMUInfo;
+using realsense2_camera_msgs::msg::Extrinsics;
+using realsense2_camera_msgs::msg::IMUInfo;
 
 namespace realsense2_camera
 {
@@ -166,7 +166,8 @@ namespace realsense2_camera
                                const std::string& from,
                                const std::string& to);
         const rclcpp::ParameterValue declareParameter(const std::string &name, const rclcpp::ParameterValue &default_value=rclcpp::ParameterValue(), const rcl_interfaces::msg::ParameterDescriptor &parameter_descriptor=rcl_interfaces::msg::ParameterDescriptor());
-
+        template<class T>
+        void setNgetNodeParameter(T& param, const std::string& param_name, const T& default_value, const rcl_interfaces::msg::ParameterDescriptor &parameter_descriptor=rcl_interfaces::msg::ParameterDescriptor());
 
     private:
         class CimuData
@@ -195,6 +196,7 @@ namespace realsense2_camera
         cv::Mat& fix_depth_scale(const cv::Mat& from_image, cv::Mat& to_image);
         void clip_depth(rs2::depth_frame depth_frame, float clipping_dist);
         void updateStreamCalibData(const rs2::video_stream_profile& video_profile);
+        void updateExtrinsicsCalibData(const rs2::video_stream_profile& left_video_profile, const rs2::video_stream_profile& right_video_profile);
         void SetBaseStream();
         void publishStaticTransforms();
         void publishDynamicTransforms();
