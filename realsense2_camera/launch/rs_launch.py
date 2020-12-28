@@ -44,8 +44,12 @@ configurable_parameters = [{'name': 'camera_name',                  'default': '
                            {'name': 'fisheye_height',               'default': '800', 'description': 'fisheye width'},
                            {'name': 'enable_fisheye1',              'default': 'true', 'description': 'enable fisheye1 stream'},
                            {'name': 'enable_fisheye2',              'default': 'true', 'description': 'enable fisheye2 stream'},
+                           {'name': 'confidence_width',             'default': '640', 'description': 'depth image width'},                           
+                           {'name': 'confidence_height',            'default': '480', 'description': 'depth image height'},                           
+                           {'name': 'enable_confidence',            'default': 'true', 'description': 'enable depth stream'},
                            {'name': 'fisheye_fps',                  'default': '30.', 'description': ''},                           
                            {'name': 'depth_fps',                    'default': '30.', 'description': ''},                           
+                           {'name': 'confidence_fps',               'default': '30.', 'description': ''},                           
                            {'name': 'infra_fps',                    'default': '30.', 'description': ''},                           
                            {'name': 'color_fps',                    'default': '30.', 'description': ''},                           
                            {'name': 'gyro_fps',                     'default': '400.', 'description': ''},                           
@@ -77,9 +81,9 @@ def generate_launch_description():
         launch_ros.actions.Node(
             condition=IfCondition(PythonExpression(["'", LaunchConfiguration('config_file'), "' == ''"])),
             package='realsense2_camera', 
-            node_namespace=LaunchConfiguration("camera_name"),
+            namespace=LaunchConfiguration("camera_name"),
             name=LaunchConfiguration("camera_name"),
-            node_executable='realsense2_camera_node',
+            executable='realsense2_camera_node',
             parameters = [set_configurable_parameters(configurable_parameters)
                           ],
             output='screen',
@@ -88,9 +92,9 @@ def generate_launch_description():
         launch_ros.actions.Node(
             condition=IfCondition(PythonExpression(["'", LaunchConfiguration('config_file'), "' != ''"])),
             package='realsense2_camera', 
-            node_namespace=LaunchConfiguration("camera_name"),
+            namespace=LaunchConfiguration("camera_name"),
             name=LaunchConfiguration("camera_name"),
-            node_executable='realsense2_camera_node',
+            executable='realsense2_camera_node',
             parameters = [set_configurable_parameters(configurable_parameters)
                           ,{LaunchConfiguration("config_file")}
                           ],

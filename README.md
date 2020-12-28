@@ -1,16 +1,16 @@
 # ROS2 Wrapper for Intel&reg; RealSense&trade; Devices
 These are packages for using Intel RealSense cameras (D400 and L500 series, SR300 camera and T265 Tracking Module) with ROS2.
 
-LibRealSense supported version: v2.40.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
+LibRealSense supported version: v2.41.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
 
 ## Installation Instructions
-This version supports ROS2 eloquent on Ubuntu 18.04.
+This version supports ROS2 foxy on Ubuntu 20.04.
 
    ### Step 1: Install the ROS2 distribution
-   - #### Install [ROS2 Eloquent](https://index.ros.org/doc/ros2/Installation/Eloquent/Linux-Install-Debians/), on Ubuntu 18.04.
+   - #### Install [ROS2 foxy](https://index.ros.org/doc/ros2/Installation/Foxy/Linux-Install-Debians/), on Ubuntu 20.04.
 
    ```bash
-  ROS_DISTRO=eloquent
+  ROS_DISTRO=foxy
   sudo apt update && sudo apt install curl gnupg2 lsb-release
   curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
   sudo sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
@@ -33,7 +33,7 @@ This version supports ROS2 eloquent on Ubuntu 18.04.
    - #### Install from [Debian Package](https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_linux.md#installing-the-packages) - In that case treat yourself as a developer. Make sure you follow the instructions to also install librealsense2-dev and librealsense-dkms packages.
 
    #### OR
-   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.40.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
+   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.41.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
 
 
    ### Step 3: Install Intel&reg; RealSense&trade; ROS2 wrapper from Sources
@@ -42,15 +42,15 @@ This version supports ROS2 eloquent on Ubuntu 18.04.
    mkdir -p ~/ros2_ws/src
    cd ~/ros2_ws/src/
    ```
-   - Clone the latest Eloquent Intel&reg; RealSense&trade;  wrapper from [here](https://github.com/IntelRealSense/realsense-ros.git) into '~/ros2_ws/src/'
+   - Clone the latest Foxy Intel&reg; RealSense&trade;  wrapper from [here](https://github.com/IntelRealSense/realsense-ros.git) into '~/ros2_ws/src/'
    ```bashrc
-   git clone https://github.com/IntelRealSense/realsense-ros.git -b eloquent
+   git clone https://github.com/IntelRealSense/realsense-ros.git -b foxy
    cd ~/ros2_ws
    ```
 
   ### Step 4: Install dependencies:
    ```bash
-  sudo apt-get install python-rosdep -y
+  sudo apt-get install python3-rosdep -y
   sudo rosdep init
   rosdep update
   rosdep install -i --from-path src --rosdistro $ROS_DISTRO -y
@@ -81,7 +81,7 @@ ros2 launch realsense2_camera rs_launch.py enable_pointcloud:=true device_type:=
 ```
 or, without using the supplement launch files:
 ```bash
-ros2 run realsense2_node realsense2_node --ros-args -p filters:=colorizer
+ros2 run realsense2_camera realsense2_camera_node --ros-args -p filters:=colorizer
 ```
 
 

@@ -14,7 +14,7 @@
 #include <diagnostic_updater/update_functions.hpp>
 #include <diagnostic_updater/publisher.hpp>
 // #include <nav_msgs/Odometry.h>
-#include <image_transport/image_transport.h>
+#include <image_transport/image_transport.hpp>
 #include "realsense2_camera_msgs/msg/imu_info.hpp"
 #include "realsense2_camera_msgs/msg/extrinsics.hpp"
 #include <librealsense2/hpp/rs_processing.hpp>
@@ -265,7 +265,7 @@ namespace realsense2_camera
         bool _publish_tf;
         double _tf_publish_rate;
         tf2_ros::StaticTransformBroadcaster _static_tf_broadcaster;
-        std::shared_ptr<tf2_ros::StaticTransformBroadcaster> _dynamic_tf_broadcaster;
+        tf2_ros::TransformBroadcaster _dynamic_tf_broadcaster;
         std::vector<geometry_msgs::msg::TransformStamped> _static_tf_msgs;
         std::shared_ptr<std::thread> _tf_t;
 
