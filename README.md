@@ -3,9 +3,11 @@ These are packages for using Intel RealSense cameras (D400 series SR300 camera a
 
 This version supports Kinetic, Melodic and Noetic distributions.
 
-For running in ROS2 environment please switch to the [eloquent branch](https://github.com/IntelRealSense/realsense-ros/tree/eloquent)
+For running in ROS2-Eloquent environment please switch to the [eloquent branch](https://github.com/IntelRealSense/realsense-ros/tree/eloquent). </br>
+For running in ROS2-Foxy environment please switch to the [foxy branch](https://github.com/IntelRealSense/realsense-ros/tree/foxy).
 
-LibRealSense supported version: v2.40.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
+
+LibRealSense supported version: v2.41.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
 
 ## Installation Instructions
 
@@ -71,7 +73,7 @@ LibRealSense supported version: v2.40.0 (see [realsense2_camera release notes](h
         `vcpkg install realsense2:x64-windows` 
 
    #### OR
-   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.40.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
+   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.41.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
 
 
    ### Step 2: Install Intel&reg; RealSense&trade; ROS from Sources
@@ -149,6 +151,15 @@ After running the above command with D435i attached, the following list of topic
 - /camera/accel/imu_info
 - /camera/accel/sample
 - /diagnostics
+
+>Using an L515 device the list differs a little by adding a 4-bit confidence grade (pulished as a mono8 image):
+>- /camera/confidence/camera_info
+>- /camera/confidence/image_rect_raw
+>
+>It also replaces the 2 infrared topics with the single available one:
+>- /camera/infra/camera_info
+>- /camera/infra/image_raw
+
 
 The "/camera" prefix is the default and can be changed. Check the rs_multiple_devices.launch file for an example.
 If using D435 or D415, the gyro and accel topics wont be available. Likewise, other topics will be available when using T265 (see below).
@@ -248,7 +259,6 @@ roslaunch realsense2_camera rs_camera.launch camera:=cam_2 serial_no:=<serial nu
 
 ```
 ## Using T265 ##
-**Important Notice:** For wheeled robots, odometer input is a requirement for robust and accurate tracking. The relevant APIs will be added to librealsense and ROS/realsense in upcoming releases. Currently, the API is available in the [underlying device driver](https://github.com/IntelRealSense/librealsense/blob/master/third-party/libtm/libtm/include/TrackingDevice.h#L508-L515).
 
 ### Start the camera node
 To start the camera node in ROS:
