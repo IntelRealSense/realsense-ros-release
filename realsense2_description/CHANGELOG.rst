@@ -2,46 +2,30 @@
 Changelog for package realsense2_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-2.2.22 (2021-02-18)
--------------------
-* Fix mass of d415
-* Consistent add_plug in xacros and launch files
+3.1.4 (2021-02-18)
+------------------
+* d415 add plug
+* fix d415 mass in _d415.urdf.xacro.
+  import tests for xacro files.
 * Contributors: Manuel Stahl, Tim Übelhör, doronhi
 
-2.2.21 (2020-12-31)
--------------------
-
-2.2.20 (2020-11-19)
--------------------
-* Add urdf file for l515
+3.1.3 (2020-12-28)
+------------------
+* fix realsense2_description's dependency to realsense2_camera_msgs
+  remove boost dependency.
+  rename node_namespace to namespace
+  rename node_executable to executable
 * Contributors: doronhi
 
-2.2.18 (2020-10-26)
--------------------
-* Feature: Add name to usb_plug to enable multiple copies of usb_plug model.
-* Fix mass of d435 - from lgulich
-* Contributors: Guillaume, doronhi, lgulich
-
-2.2.17 (2020-09-09)
--------------------
-
-2.2.16 (2020-08-06)
--------------------
-
-2.2.15 (2020-07-13)
--------------------
-* Merge remote-tracking branch 'origin/development' into development
-* Merge pull request `#1126 <https://github.com/intel-ros/realsense/issues/1126>`_ from mcamurri/add-d435i-xacro
-  add D435i modules, urdf and launchfile
-* comply to ROS Noetic xacro rules (backcompatible with ROS Melodic)
-* Merge branch 'development' into add-d435i-xacro
-* Merge branch 'development' of https://github.com/IntelRealSense/realsense-ros into development
-  realsense2_description/urdf/test_d435_multiple_cameras.urdf.xacro
-* move xml start line in the right place
-* add D435i modules, urdf and launchfile
-* fix use_nominal_extrinsics arg/property
-* add D435i modules, urdf and launchfile
-* Contributors: Marco Camurri, doronhi
+3.1.2 (2020-12-10)
+------------------
+* Add urdf for L515.
+* remove librealsense2 and realsense2_camera dependencies
+* Add models for D415, D435, D435i.
+  For visualization, can be presented using view_model.launch.py
+* fix view_d435_model.launch.py and view_d435i_model.launch.py
+  run: ros2 launch realsense2_description view_d435i_model.launch.py
+* Contributors: Ryan Shim, doronhi
 
 2.2.14 (2020-06-18)
 -------------------
