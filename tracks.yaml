@@ -102,7 +102,7 @@ tracks:
     ros_distro: melodic
     vcs_type: git
     vcs_uri: https://github.com/IntelRealSense/realsense-ros.git
-    version: 2.2.21
+    version: 2.2.22
   noetic:
     actions:
     - bloom-export-upstream :{vcs_local_uri} :{vcs_type} --tag :{release_tag} --display-uri
