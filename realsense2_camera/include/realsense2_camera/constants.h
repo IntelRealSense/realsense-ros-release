@@ -7,7 +7,7 @@
 
 #define REALSENSE_ROS_MAJOR_VERSION    3
 #define REALSENSE_ROS_MINOR_VERSION    1
-#define REALSENSE_ROS_PATCH_VERSION    3
+#define REALSENSE_ROS_PATCH_VERSION    4
 
 #define STRINGIFY(arg) #arg
 #define VAR_ARG_STRING(arg) STRINGIFY(arg)
@@ -26,6 +26,9 @@
 
 #define ROS_WARN_COND(cond, ...) RCLCPP_WARN_EXPRESSION(_logger, cond, __VA_ARGS__)
 #define ROS_WARN_STREAM_COND(cond, msg) RCLCPP_WARN_STREAM_EXPRESSION(_logger, cond, msg)
+
+#define ROS_WARN_ONCE(msg) RCLCPP_WARN_ONCE(_logger, msg)
+#define ROS_INFO_STREAM_ONCE(msg) RCLCPP_INFO_STREAM_ONCE(_logger, msg)
 
 namespace realsense2_camera
 {
@@ -54,17 +57,19 @@ namespace realsense2_camera
     const uint16_t RS_L515_PID      = 0x0B64; // 
     
 
-    const bool ALIGN_DEPTH    = false;
-    const bool POINTCLOUD     = false;
+    const bool ALIGN_DEPTH             = false;
+    const bool POINTCLOUD              = false;
     const bool ALLOW_NO_TEXTURE_POINTS = false;
-    const bool SYNC_FRAMES    = false;
+    const bool SYNC_FRAMES             = false;
+    const bool ORDERED_POINTCLOUD      = false;
 
     const bool PUBLISH_TF        = true;
     const double TF_PUBLISH_RATE = 0; // Static transform
 
-    const int IMAGE_WIDTH     = 640;
-    const int IMAGE_HEIGHT    = 480;
-    const double IMAGE_FPS    = 30;
+    const int IMAGE_WIDTH          = 640;
+    const int IMAGE_HEIGHT         = 480;
+    const double IMAGE_FPS         = 30;
+    const std::string IMAGE_QOS    = "SENSOR_DATA";
 
     const double IMU_FPS      = 0;
 
