@@ -1,0 +1,12 @@
+Source: ros-noetic-realsense2-camera
+Section: misc
+Priority: optional
+Maintainer: Sergey Dorodnicov <sergey.dorodnicov@intel.com>
+Build-Depends: debhelper (>= 9.0.0), libeigen3-dev, ros-noetic-catkin, ros-noetic-cv-bridge, ros-noetic-ddynamic-reconfigure, ros-noetic-diagnostic-updater, ros-noetic-genmsg, ros-noetic-image-transport, ros-noetic-librealsense2, ros-noetic-message-runtime, ros-noetic-nav-msgs, ros-noetic-nodelet, ros-noetic-roscpp, ros-noetic-sensor-msgs, ros-noetic-std-msgs, ros-noetic-std-srvs, ros-noetic-tf
+Homepage: http://www.ros.org/wiki/RealSense
+Standards-Version: 3.9.2
+
+Package: ros-noetic-realsense2-camera
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libeigen3-dev, ros-noetic-cv-bridge, ros-noetic-ddynamic-reconfigure, ros-noetic-diagnostic-updater, ros-noetic-genmsg, ros-noetic-image-transport, ros-noetic-librealsense2, ros-noetic-message-runtime, ros-noetic-nav-msgs, ros-noetic-nodelet, ros-noetic-roscpp, ros-noetic-sensor-msgs, ros-noetic-std-msgs, ros-noetic-std-srvs, ros-noetic-tf
+Description: RealSense Camera package allowing access to Intel T265 Tracking module and SR300 and D400 3D cameras
