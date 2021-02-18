@@ -58,12 +58,13 @@ namespace realsense2_camera
     const stream_index_pair GYRO{RS2_STREAM_GYRO, 0};
     const stream_index_pair ACCEL{RS2_STREAM_ACCEL, 0};
     const stream_index_pair POSE{RS2_STREAM_POSE, 0};
+    const stream_index_pair CONFIDENCE{RS2_STREAM_CONFIDENCE, 0};
     
 
     const std::vector<stream_index_pair> IMAGE_STREAMS = {DEPTH, INFRA0, INFRA1, INFRA2,
                                                           COLOR,
                                                           FISHEYE,
-                                                          FISHEYE1, FISHEYE2};
+                                                          FISHEYE1, FISHEYE2, CONFIDENCE};
 
     const std::vector<stream_index_pair> HID_STREAMS = {GYRO, ACCEL, POSE};
 
@@ -192,7 +193,8 @@ namespace realsense2_camera
         void enable_devices();
         void setupFilters();
         void setupStreams();
-        void setBaseTime(double frame_time, bool warn_no_metadata);
+        bool setBaseTime(double frame_time, rs2_timestamp_domain time_domain);
+        rclcpp::Time frameSystemTimeSec(rs2::frame frame);
         cv::Mat& fix_depth_scale(const cv::Mat& from_image, cv::Mat& to_image);
         void clip_depth(rs2::depth_frame depth_frame, float clipping_dist);
         void updateStreamCalibData(const rs2::video_stream_profile& video_profile);
@@ -238,6 +240,7 @@ namespace realsense2_camera
         void registerAutoExposureROIOptions();
         void set_auto_exposure_roi(const std::string variable_name, rs2::sensor sensor, const std::vector<rclcpp::Parameter> & parameters);
         void set_sensor_auto_exposure_roi(rs2::sensor sensor);
+        const rmw_qos_profile_t qos_string_to_qos(std::string str);
         rs2_stream rs2_string_to_stream(std::string str);
         void clean();
 
@@ -250,6 +253,7 @@ namespace realsense2_camera
         float _depth_scale_meters;
         float _clipping_distance;
         bool _allow_no_texture_points;
+        bool _ordered_pc;
 
         double _linear_accel_cov;
         double _angular_velocity_cov;
@@ -259,6 +263,7 @@ namespace realsense2_camera
         std::map<stream_index_pair, int> _width;
         std::map<stream_index_pair, int> _height;
         std::map<stream_index_pair, double> _fps;
+        std::map<stream_index_pair, std::string> _qos;
         std::map<rs2_stream, rs2_format>  _format;
         std::map<stream_index_pair, bool> _enable;
         std::map<rs2_stream, std::string> _stream_name;
