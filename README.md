@@ -7,7 +7,7 @@ For running in ROS2-Eloquent environment please switch to the [eloquent branch](
 For running in ROS2-Foxy environment please switch to the [foxy branch](https://github.com/IntelRealSense/realsense-ros/tree/foxy).
 
 
-LibRealSense supported version: v2.41.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
+LibRealSense supported version: v2.42.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
 
 ## Installation Instructions
 
@@ -73,7 +73,7 @@ LibRealSense supported version: v2.41.0 (see [realsense2_camera release notes](h
         `vcpkg install realsense2:x64-windows` 
 
    #### OR
-   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.41.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
+   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.42.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
 
 
    ### Step 2: Install Intel&reg; RealSense&trade; ROS from Sources
@@ -164,6 +164,9 @@ After running the above command with D435i attached, the following list of topic
 The "/camera" prefix is the default and can be changed. Check the rs_multiple_devices.launch file for an example.
 If using D435 or D415, the gyro and accel topics wont be available. Likewise, other topics will be available when using T265 (see below).
 
+### Available services:
+- reset : Cause a hardware reset of the device. Usage: `rosservice call /camera/realsense2_camera/reset`
+
 ### Launch parameters
 The following parameters are available by the wrapper:
 - **serial_no**: will attach to the device with the given serial number (*serial_no*) number. Default, attach to available RealSense device in random.
@@ -176,8 +179,10 @@ The following parameters are available by the wrapper:
 The topics are of the form: ```/camera/aligned_depth_to_color/image_raw``` etc.
 - **filters**: any of the following options, separated by commas:</br>
  - ```colorizer```: will color the depth image. On the depth topic an RGB image will be published, instead of the 16bit depth values .
- - ```pointcloud```: will add a pointcloud topic `/camera/depth/color/points`. The texture of the pointcloud can be modified in rqt_reconfigure (see below) or using the parameters: `pointcloud_texture_stream` and `pointcloud_texture_index`. Run rqt_reconfigure to see available values for these parameters.</br>
- The depth FOV and the texture FOV are not similar. By default, pointcloud is limited to the section of depth containing the texture. You can have a full depth to pointcloud, coloring the regions beyond the texture with zeros, by setting `allow_no_texture_points` to true.
+ - ```pointcloud```: will add a pointcloud topic `/camera/depth/color/points`.
+    * The texture of the pointcloud can be modified in rqt_reconfigure (see below) or using the parameters: `pointcloud_texture_stream` and `pointcloud_texture_index`. Run rqt_reconfigure to see available values for these parameters.</br>
+    * The depth FOV and the texture FOV are not similar. By default, pointcloud is limited to the section of depth containing the texture. You can have a full depth to pointcloud, coloring the regions beyond the texture with zeros, by setting `allow_no_texture_points` to true.
+    * pointcloud is of an unordered format by default. This can be changed by setting `ordered_pc` to true.
 
  - The following filters have detailed descriptions in : https://github.com/IntelRealSense/librealsense/blob/master/doc/post-processing-filters.md
    - ```disparity``` - convert depth to disparity before applying other filters and back.
@@ -186,7 +191,7 @@ The topics are of the form: ```/camera/aligned_depth_to_color/image_raw``` etc.
    - ```hole_filling``` - apply hole-filling filter.
    - ```decimation``` - reduces depth scene complexity.
 - **enable_sync**: gathers closest frames of different sensors, infra red, color and depth, to be sent with the same timetag. This happens automatically when such filters as pointcloud are enabled.
-- ***<stream_type>*_width**, ***<stream_type>*_height**, ***<stream_type>*_fps**: <stream_type> can be any of *infra, color, fisheye, depth, gyro, accel, pose*. Sets the required format of the device. If the specified combination of parameters is not available by the device, the stream will not be published. Setting a value to 0, will choose the first format in the inner list. (i.e. consistent between runs but not defined). Note: for gyro accel and pose, only _fps option is meaningful.
+- ***<stream_type>*_width**, ***<stream_type>*_height**, ***<stream_type>*_fps**: <stream_type> can be any of *infra, color, fisheye, depth, gyro, accel, pose*. Sets the required format of the device. If the specified combination of parameters is not available by the device, the stream will be replaced with the default for that stream. Setting a value to 0, will choose the first format in the inner list. (i.e. consistent between runs but not defined).</br>*Note: for gyro accel and pose, only _fps option is meaningful.
 - **enable_*<stream_name>***: Choose whether to enable a specified stream or not. Default is true. <stream_name> can be any of *infra1, infra2, color, depth, fisheye, fisheye1, fisheye2, gyro, accel, pose*.
 - **tf_prefix**: By default all frame's ids have the same prefix - `camera_`. This allows changing it per camera.
 - **base_frame_id**: defines the frame_id all static transformations refers to.
