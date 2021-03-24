@@ -7,14 +7,16 @@
 
 #include <librealsense2/rs.hpp>
 #include <librealsense2/rsutil.h>
-#include "realsense2_camera/constants.h"
+#include "constants.h"
+#include "dynamic_params.h"
 #include <cv_bridge/cv_bridge.h>
 
-#include <diagnostic_updater/diagnostic_updater.hpp>
-#include <diagnostic_updater/update_functions.hpp>
-#include <diagnostic_updater/publisher.hpp>
 // #include <nav_msgs/Odometry.h>
+#if defined(DASHING) || defined(ELOQUENT)
+#include <image_transport/image_transport.h>
+#else
 #include <image_transport/image_transport.hpp>
+#endif
 #include "realsense2_camera_msgs/msg/imu_info.hpp"
 #include "realsense2_camera_msgs/msg/extrinsics.hpp"
 #include <librealsense2/hpp/rs_processing.hpp>
@@ -118,7 +120,7 @@ namespace realsense2_camera
     {
     public:
         BaseRealSenseNode(rclcpp::Node& node,
-                          rs2::device dev, const std::string& serial_no);
+                          rs2::device dev, std::shared_ptr<Parameters> parameters);
         ~BaseRealSenseNode();
 
     public:
@@ -147,6 +149,7 @@ namespace realsense2_camera
                 }
         };
 
+        bool _is_running;
         std::string _base_frame_id;
         std::string _odom_frame_id;
         std::map<stream_index_pair, std::string> _frame_id;
@@ -166,7 +169,6 @@ namespace realsense2_camera
                                const tf2::Quaternion& q,
                                const std::string& from,
                                const std::string& to);
-        const rclcpp::ParameterValue declareParameter(const std::string &name, const rclcpp::ParameterValue &default_value=rclcpp::ParameterValue(), const rcl_interfaces::msg::ParameterDescriptor &parameter_descriptor=rcl_interfaces::msg::ParameterDescriptor());
         template<class T>
         void setNgetNodeParameter(T& param, const std::string& param_name, const T& default_value, const rcl_interfaces::msg::ParameterDescriptor &parameter_descriptor=rcl_interfaces::msg::ParameterDescriptor());
 
@@ -236,9 +238,12 @@ namespace realsense2_camera
 
         void registerDynamicOption(rs2::options sensor, std::string& module_name);
         void registerDynamicReconfigCb();
+        void registerHDRoptions();
+        void set_sensor_parameter_to_ros(rs2::sensor sensor, rs2_option option);
+        void monitor_update_functions();
         void registerAutoExposureROIOption(const std::string option_name, const int min_val, const int max_val, rs2::sensor sensor, int* option_value);
         void registerAutoExposureROIOptions();
-        void set_auto_exposure_roi(const std::string variable_name, rs2::sensor sensor, const std::vector<rclcpp::Parameter> & parameters);
+        void set_auto_exposure_roi(const std::string variable_name, rs2::sensor sensor, const rclcpp::Parameter& parameter);
         void set_sensor_auto_exposure_roi(rs2::sensor sensor);
         const rmw_qos_profile_t qos_string_to_qos(std::string str);
         rs2_stream rs2_string_to_stream(std::string str);
@@ -249,7 +254,6 @@ namespace realsense2_camera
         std::map<std::string, std::function<void(rs2::frame)>> _sensors_callback;
 
         std::string _json_file_path;
-        std::string _serial_no;
         float _depth_scale_meters;
         float _clipping_distance;
         bool _allow_no_texture_points;
@@ -272,7 +276,9 @@ namespace realsense2_camera
         tf2_ros::StaticTransformBroadcaster _static_tf_broadcaster;
         tf2_ros::TransformBroadcaster _dynamic_tf_broadcaster;
         std::vector<geometry_msgs::msg::TransformStamped> _static_tf_msgs;
-        std::shared_ptr<std::thread> _tf_t;
+        std::shared_ptr<std::thread> _tf_t, _update_functions_t;
+        std::vector<std::function<void()> > _update_functions_v;
+        std::condition_variable _cv_tf, _update_functions_cv;
 
         std::map<stream_index_pair, image_transport::Publisher> _image_publishers;
         
@@ -322,8 +328,7 @@ namespace realsense2_camera
 
         sensor_msgs::msg::PointCloud2 _msg_pointcloud;
         std::vector< unsigned int > _valid_pc_indices;
-        std::vector<rclcpp::node_interfaces::OnSetParametersCallbackHandle::SharedPtr> _callback_handlers;
-        std::set<std::string> _variable_names;
+        std::shared_ptr<Parameters> _parameters;
 
     };//end class
 }
