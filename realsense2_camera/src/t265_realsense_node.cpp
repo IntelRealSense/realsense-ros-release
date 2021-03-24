@@ -1,22 +1,24 @@
-#include "t265_realsense_node.h"
-#include <fstream>
+#include "../include/t265_realsense_node.h"
 
 using namespace realsense2_camera;
 
-T265RealsenseNode::T265RealsenseNode(rclcpp::Node& node,
-                                     rs2::device dev, std::shared_ptr<Parameters> parameters) : 
-                                     BaseRealSenseNode(node, dev, parameters),
+T265RealsenseNode::T265RealsenseNode(ros::NodeHandle& nodeHandle,
+                                     ros::NodeHandle& privateNodeHandle,
+                                     rs2::device dev,
+                                     const std::string& serial_no) : 
+                                     BaseRealSenseNode(nodeHandle, privateNodeHandle, dev, serial_no),
                                      _wo_snr(dev.first<rs2::wheel_odometer>()),
                                      _use_odom_in(false) 
                                      {
                                          _monitor_options = {RS2_OPTION_ASIC_TEMPERATURE, RS2_OPTION_MOTION_MODULE_TEMPERATURE};
                                          initializeOdometryInput();
+                                         handleWarning();
                                      }
 
 void T265RealsenseNode::initializeOdometryInput()
 {
     std::string calib_odom_file;
-    setNgetNodeParameter(calib_odom_file, "calib_odom_file", std::string(""));
+    _pnh.param("calib_odom_file", calib_odom_file, std::string(""));
     if (calib_odom_file.empty())
     {
         ROS_INFO("No calib_odom_file. No input odometry accepted.");
@@ -40,10 +42,31 @@ void T265RealsenseNode::initializeOdometryInput()
     _use_odom_in = true;
 }
 
+void T265RealsenseNode::toggleSensors(bool enabled)
+{
+  ROS_WARN_STREAM("toggleSensors method not implemented for T265");
+}
+
 void T265RealsenseNode::publishTopics()
 {
     BaseRealSenseNode::publishTopics();
     setupSubscribers();
+}
+
+void  T265RealsenseNode::handleWarning()
+{
+    rs2::log_to_callback( rs2_log_severity::RS2_LOG_SEVERITY_WARN, [&]
+      ( rs2_log_severity severity, rs2::log_message const & msg ) noexcept {
+        _T265_fault =  msg.raw();
+        std::array<std::string, 2> list_of_fault{"SLAM_ERROR", "Stream transfer failed, exiting"};
+        auto it = std::find_if(begin(list_of_fault), end(list_of_fault),
+                  [&](const std::string& s) {return _T265_fault.find(s) != std::string::npos; });
+        if (it != end(list_of_fault))
+        {
+          callback_updater.add("Warning ",this, & T265RealsenseNode::warningDiagnostic);
+          callback_updater.force_update();
+        }
+    });
 }
 
 void T265RealsenseNode::setupSubscribers()
@@ -51,14 +74,13 @@ void T265RealsenseNode::setupSubscribers()
     if (!_use_odom_in) return;
 
     std::string topic_odom_in;
-    setNgetNodeParameter(topic_odom_in, "topic_odom_in", DEFAULT_TOPIC_ODOM_IN);
-
+    _pnh.param("topic_odom_in", topic_odom_in, DEFAULT_TOPIC_ODOM_IN);
     ROS_INFO_STREAM("Subscribing to in_odom topic: " << topic_odom_in);
 
-    _odom_subscriber = _node.create_subscription<nav_msgs::msg::Odometry>(topic_odom_in, 1, std::bind(&T265RealsenseNode::odom_in_callback, this, std::placeholders::_1));
+    _odom_subscriber = _node_handle.subscribe(topic_odom_in, 1, &T265RealsenseNode::odom_in_callback, this);
 }
 
-void T265RealsenseNode::odom_in_callback(const nav_msgs::msg::Odometry::SharedPtr msg)
+void T265RealsenseNode::odom_in_callback(const nav_msgs::Odometry::ConstPtr& msg)
 {
     ROS_DEBUG("Got in_odom message");
     rs2_vector velocity {-(float)(msg->twist.twist.linear.y),
@@ -72,11 +94,11 @@ void T265RealsenseNode::odom_in_callback(const nav_msgs::msg::Odometry::SharedPt
 void T265RealsenseNode::calcAndPublishStaticTransform(const stream_index_pair& stream, const rs2::stream_profile& base_profile)
 {
     // Transform base to stream
-    tf2::Quaternion quaternion_optical;
-    quaternion_optical.setRPY(-M_PI / 2, 0.0, -M_PI / 2);
+    tf::Quaternion quaternion_optical;
+    quaternion_optical.setRPY(M_PI / 2, 0.0, -M_PI / 2);    //Pose To ROS
     float3 zero_trans{0, 0, 0};
 
-    rclcpp::Time transform_ts_ = _node.now();
+    ros::Time transform_ts_ = ros::Time::now();
 
     rs2_extrinsics ex;
     try
@@ -98,7 +120,6 @@ void T265RealsenseNode::calcAndPublishStaticTransform(const stream_index_pair& s
 
     auto Q = rotationMatrixToQuaternion(ex.rotation);
     Q = quaternion_optical * Q * quaternion_optical.inverse();
-
     float3 trans{ex.translation[0], ex.translation[1], ex.translation[2]};
     if (stream == POSE)
     {
@@ -117,4 +138,9 @@ void T265RealsenseNode::calcAndPublishStaticTransform(const stream_index_pair& s
             publish_static_tf(transform_ts_, zero_trans, quaternion_optical, _depth_aligned_frame_id[stream], _optical_frame_id[stream]);
         }
     }
+}
+
+void T265RealsenseNode::warningDiagnostic(diagnostic_updater::DiagnosticStatusWrapper& status)
+{
+  status.summary(diagnostic_msgs::DiagnosticStatus::WARN, _T265_fault);
 }
