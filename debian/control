@@ -1,0 +1,12 @@
+Source: ros-melodic-realsense2-camera
+Section: misc
+Priority: optional
+Maintainer: Sergey Dorodnicov <sergey.dorodnicov@intel.com>
+Build-Depends: debhelper (>= 9.0.0), libeigen3-dev, ros-melodic-catkin, ros-melodic-cv-bridge, ros-melodic-ddynamic-reconfigure, ros-melodic-diagnostic-updater, ros-melodic-genmsg, ros-melodic-image-transport, ros-melodic-librealsense2, ros-melodic-message-runtime, ros-melodic-nav-msgs, ros-melodic-nodelet, ros-melodic-roscpp, ros-melodic-sensor-msgs, ros-melodic-std-msgs, ros-melodic-std-srvs, ros-melodic-tf
+Homepage: http://www.ros.org/wiki/RealSense
+Standards-Version: 3.9.2
+
+Package: ros-melodic-realsense2-camera
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libeigen3-dev, ros-melodic-cv-bridge, ros-melodic-ddynamic-reconfigure, ros-melodic-diagnostic-updater, ros-melodic-genmsg, ros-melodic-image-transport, ros-melodic-librealsense2, ros-melodic-message-runtime, ros-melodic-nav-msgs, ros-melodic-nodelet, ros-melodic-roscpp, ros-melodic-sensor-msgs, ros-melodic-std-msgs, ros-melodic-std-srvs, ros-melodic-tf
+Description: RealSense Camera package allowing access to Intel T265 Tracking module and SR300 and D400 3D cameras
