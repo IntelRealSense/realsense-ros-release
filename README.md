@@ -1,3 +1,28 @@
+## realsense2_camera (melodic) - 2.2.23-1
+
+The packages in the `realsense2_camera` repository were released into the `melodic` distro by running `/usr/bin/bloom-release --ros-distro melodic realsense2_camera --edit` on `Wed, 24 Mar 2021 13:18:43 -0000`
+
+These packages were released:
+- `realsense2_camera`
+- `realsense2_description`
+
+Version of package(s) in repository `realsense2_camera`:
+
+- upstream repository: https://github.com/IntelRealSense/realsense-ros.git
+- release repository: https://github.com/IntelRealSense/realsense-ros-release.git
+- rosdistro version: `2.2.22-1`
+- old version: `2.2.22-1`
+- new version: `2.2.23-1`
+
+Versions of tools used:
+
+- bloom version: `0.10.2`
+- catkin_pkg version: `0.4.23`
+- rosdep version: `0.20.0`
+- rosdistro version: `0.8.3`
+- vcstools version: `0.1.42`
+
+
 ## realsense2_camera (foxy) - 3.1.5-1
 
 The packages in the `realsense2_camera` repository were released into the `foxy` distro by running `/usr/bin/bloom-release --ros-distro foxy realsense2_camera --edit` on `Wed, 24 Mar 2021 12:47:22 -0000`
