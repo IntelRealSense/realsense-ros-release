@@ -93,13 +93,11 @@ find_package(rclcpp_components REQUIRED)
 find_package(realsense2_camera_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(diagnostic_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2 REQUIRED)
-find_package(diagnostic_updater REQUIRED)
 
-find_package(realsense2 2.42.0)
+find_package(realsense2 2.43.0)
 if(NOT realsense2_FOUND)
     message(FATAL_ERROR "\n\n Intel RealSense SDK 2.0 is missing, please install it from https://github.com/IntelRealSense/librealsense/releases\n\n")
 endif()
@@ -109,10 +107,40 @@ include_directories(include)
 
 set(node_plugins "")
 
-add_library(${PROJECT_NAME} SHARED
+set(SOURCES 
     src/realsense_node_factory.cpp
     src/base_realsense_node.cpp
     src/t265_realsense_node.cpp
+    src/dynamic_params.cpp
+  )
+
+if(NOT DEFINED ENV{ROS_DISTRO})
+  message(FATAL_ERROR "ROS_DISTRO is not defined." )
+endif()
+if("$ENV{ROS_DISTRO}" STREQUAL "dashing")
+  message(STATUS "Build for ROS2 Dashing")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDASHING")
+  set(SOURCES "${SOURCES}" src/ros_param_backend_dashing.cpp)
+elseif("$ENV{ROS_DISTRO}" STREQUAL "eloquent")
+  message(STATUS "Build for ROS2 eloquent")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELOQUENT")
+  set(SOURCES "${SOURCES}" src/ros_param_backend_foxy.cpp)
+elseif("$ENV{ROS_DISTRO}" STREQUAL "foxy")
+  message(STATUS "Build for ROS2 Dashing")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFOXY")
+  set(SOURCES "${SOURCES}" src/ros_param_backend_foxy.cpp)
+else()
+  message(FATAL_ERROR "Unsupported ROS Distribution: " "$ENV{ROS_DISTRO}")
+endif()
+
+
+add_library(${PROJECT_NAME} SHARED
+    include/constants.h
+    include/realsense_node_factory.h
+    include/base_realsense_node.h
+    include/dynamic_params.h
+    include/ros_param_backend.h
+    ${SOURCES}
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -127,10 +155,8 @@ set(dependencies
   realsense2_camera_msgs
   std_msgs
   sensor_msgs
-  diagnostic_msgs
   nav_msgs
   tf2
-  diagnostic_updater
   realsense2
   tf2_ros
 )
@@ -183,7 +209,6 @@ if(BUILD_TESTING)
     OpenCV
     rclcpp
     sensor_msgs
-    diagnostic_msgs
     nav_msgs
     tf2
     tf2_ros)

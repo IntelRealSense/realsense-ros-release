@@ -6,8 +6,8 @@
 #define ___REALSENSE_NODE_FACTORY_HEADER___
 
 // cpplint: c system headers
-#include "realsense2_camera/constants.h"
-#include "realsense2_camera/base_realsense_node.h"
+#include "constants.h"
+#include "base_realsense_node.h"
 #include <builtin_interfaces/msg/time.hpp>
 #include <console_bridge/console.h>
 #include <rclcpp/rclcpp.hpp>
@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 #include <thread>
+#include "dynamic_params.h"
 
 namespace realsense2_camera
 {
@@ -54,6 +55,7 @@ namespace realsense2_camera
         std::thread _query_thread;
         bool _is_alive;
         rclcpp::Logger _logger;
+        std::shared_ptr<Parameters> _parameters;
     };
 }//end namespace
 #endif //___REALSENSE_NODE_FACTORY_HEADER___
