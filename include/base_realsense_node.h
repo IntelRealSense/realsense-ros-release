@@ -237,6 +237,9 @@ namespace realsense2_camera
         void multiple_message_callback(rs2::frame frame, imu_sync_method sync_method);
         void frame_callback(rs2::frame frame);
         void registerDynamicOption(ros::NodeHandle& nh, rs2::options sensor, std::string& module_name);
+        void registerHDRoptions();
+        void set_sensor_parameter_to_ros(const std::string& module_name, rs2::options sensor, rs2_option option);
+        void monitor_update_functions();
         void readAndSetDynamicParam(ros::NodeHandle& nh1, std::shared_ptr<ddynamic_reconfigure::DDynamicReconfigure> ddynrec, const std::string option_name, const int min_val, const int max_val, rs2::sensor sensor, int* option_value);
         void registerAutoExposureROIOptions(ros::NodeHandle& nh);
         void set_auto_exposure_roi(const std::string option_name, rs2::sensor sensor, int new_value);
@@ -275,7 +278,7 @@ namespace realsense2_camera
         tf2_ros::StaticTransformBroadcaster _static_tf_broadcaster;
         tf2_ros::TransformBroadcaster _dynamic_tf_broadcaster;
         std::vector<geometry_msgs::TransformStamped> _static_tf_msgs;
-        std::shared_ptr<std::thread> _tf_t;
+        std::shared_ptr<std::thread> _tf_t, _update_functions_t;
 
         std::map<stream_index_pair, ImagePublisherWithFrequencyDiagnostics> _image_publishers;
         std::map<stream_index_pair, ros::Publisher> _imu_publishers;
@@ -302,8 +305,8 @@ namespace realsense2_camera
         stream_index_pair _pointcloud_texture;
         PipelineSyncer _syncer;
         std::vector<NamedFilter> _filters;
+        std::shared_ptr<rs2::filter> _colorizer, _pointcloud_filter;
         std::vector<rs2::sensor> _dev_sensors;
-        std::map<rs2_stream, std::shared_ptr<rs2::align>> _align;
 
         std::map<stream_index_pair, cv::Mat> _depth_aligned_image;
         std::map<stream_index_pair, cv::Mat> _depth_scaled_image;
@@ -321,14 +324,14 @@ namespace realsense2_camera
         typedef std::pair<rs2_option, std::shared_ptr<TemperatureDiagnostics>> OptionTemperatureDiag;
         std::vector< OptionTemperatureDiag > _temperature_nodes;
         std::shared_ptr<std::thread> _monitoring_t;
-        mutable std::condition_variable _cv;
+        std::vector<std::function<void()> > _update_functions_v;
+        mutable std::condition_variable _cv_monitoring, _cv_tf, _update_functions_cv;
 
         stream_index_pair _base_stream;
         const std::string _namespace;
 
         sensor_msgs::PointCloud2 _msg_pointcloud;
         std::vector< unsigned int > _valid_pc_indices;
-
     };//end class
 
 }
