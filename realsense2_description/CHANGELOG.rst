@@ -2,6 +2,11 @@
 Changelog for package realsense2_description
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.2.24 (2021-04-21)
+-------------------
+* Add conditional param use_mesh.
+* Contributors: Teo Cardoso
+
 2.2.23 (2021-03-24)
 -------------------
 
