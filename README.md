@@ -5,7 +5,7 @@ This version supports Kinetic, Melodic and Noetic distributions.
 
 For running in ROS2 environment please switch to the [ros2 branch](https://github.com/IntelRealSense/realsense-ros/tree/ros2). </br>
 
-LibRealSense supported version: v2.44.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
+LibRealSense2 supported version: v2.45.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
 
 ## Installation Instructions
 
@@ -26,21 +26,7 @@ LibRealSense supported version: v2.44.0 (see [realsense2_camera release notes](h
 
     realsense2_camera is available as a debian package of ROS distribution. It can be installed by typing:
     
-    ```
-    export ROS_VER=kinetic 
-    ```
-    or
-    ```
-    export ROS_VER=melodic 
-    ```
-    or
-    ```
-    export ROS_VER=noetic 
-    ```
-    
-    Then install the ros packages using the environment variable created above:
-    
-    ```sudo apt-get install ros-$ROS_VER-realsense2-camera```
+    ```sudo apt-get install ros-$ROS_DISTRO-realsense2-camera```
 
     This will install both realsense2_camera and its dependents, including librealsense2 library.
 
@@ -48,7 +34,7 @@ LibRealSense supported version: v2.44.0 (see [realsense2_camera release notes](h
     * The version of librealsense2 is almost always behind the one availeable in RealSense&trade; official repository.
     * librealsense2 is not built to use native v4l2 driver but the less stable RS-USB protocol. That is because the last is more general and operational on a larger variety of platforms.
     * realsense2_description is available as a separate debian package of ROS distribution. It includes the 3D-models of the devices and is necessary for running launch files that include these models (i.e. rs_d435_camera_with_model.launch). It can be installed by typing:
-    `sudo apt-get install ros-$ROS_VER-realsense2-description`
+    `sudo apt-get install ros-$ROS_DISTRO-realsense2-description`
 
   *Windows*
 
@@ -63,7 +49,7 @@ LibRealSense supported version: v2.44.0 (see [realsense2_camera release notes](h
     *Ubuntu*
 
     * Install from [Debian Package](https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_linux.md#installing-the-packages)
-      - In that case treat yourself as a developer. Make sure you follow the instructions to also install librealsense2-dev and librealsense-dkms packages.
+      - In that case treat yourself as a developer. Make sure you follow the instructions to also install librealsense2-dev and librealsense2-dkms packages.
 
     *Windows* 
     Install using vcpkg
@@ -71,7 +57,7 @@ LibRealSense supported version: v2.44.0 (see [realsense2_camera release notes](h
         `vcpkg install realsense2:x64-windows` 
 
    #### OR
-   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.44.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
+   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.45.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
 
 
    ### Step 2: Install Intel&reg; RealSense&trade; ROS from Sources
@@ -164,6 +150,7 @@ If using D435 or D415, the gyro and accel topics wont be available. Likewise, ot
 
 ### Available services:
 - reset : Cause a hardware reset of the device. Usage: `rosservice call /camera/realsense2_camera/reset`
+- enable : Start/Stop all streaming sensors. Usage example: `rosservice call /camera/enable False"`
 
 ### Launch parameters
 The following parameters are available by the wrapper:
