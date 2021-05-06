@@ -1,10 +1,10 @@
 # ROS2 Wrapper for Intel&reg; RealSense&trade; Devices
 These are packages for using Intel RealSense cameras (D400 and L500 series, SR300 camera and T265 Tracking Module) with ROS2.
 
-LibRealSense supported version: v2.43.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
+LibRealSense supported version: v2.45.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
 
 ## Installation Instructions
-This version supports ROS2 Dashing, Eloquent AND Foxy.
+This version supports ROS2 Dashing, Eloquent and Foxy.
 
    ### Step 1: Install the ROS2 distribution
    - #### Install [ROS2 Dashing](https://index.ros.org/doc/ros2/Installation/dashing/Linux-Install-Debians/), on Ubuntu 18.04 or [ROS2 Foxy](https://index.ros.org/doc/ros2/Installation/foxy/Linux-Install-Debians/), on Ubuntu 20.04
@@ -28,7 +28,7 @@ This version supports ROS2 Dashing, Eloquent AND Foxy.
     `sudo apt-get install ros-$ROS_DISTRO-realsense2-description`
 
 * ### Method 2: The RealSense&trade; distribution:
-     > This option is demonstrated in the [.travis.yml](https://github.com/IntelRealSense/realsense-ros/blob/foxy/.travis.yml) file. It basically summerize the elaborate instructions in the following 2 steps:
+     > This option is demonstrated in the [.travis.yml](https://github.com/IntelRealSense/realsense-ros/blob/ros2/.travis.yml) file. It basically summerize the elaborate instructions in the following 2 steps:
 
 
    ### Step 1: Install the latest Intel&reg; RealSense&trade; SDK 2.0
@@ -37,7 +37,7 @@ This version supports ROS2 Dashing, Eloquent AND Foxy.
    - #### Install from [Debian Package](https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_linux.md#installing-the-packages) - In that case treat yourself as a developer. Make sure you follow the instructions to also install librealsense2-dev and librealsense-dkms packages.
 
    #### OR
-   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.43.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
+   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.45.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
 
 
    ### Step 3: Install Intel&reg; RealSense&trade; ROS2 wrapper from Sources
@@ -48,7 +48,7 @@ This version supports ROS2 Dashing, Eloquent AND Foxy.
    ```
    - Clone the latest ROS2 Intel&reg; RealSense&trade;  wrapper from [here](https://github.com/IntelRealSense/realsense-ros.git) into '~/ros2_ws/src/'
    ```bashrc
-   git clone https://github.com/IntelRealSense/realsense-ros.git -b foxy
+   git clone --depth 1 --branch `git ls-remote --tags https://github.com/IntelRealSense/realsense-ros.git | grep -Po "(?<=tags/)3.\d+\.\d+" | sort -V | tail -1` https://github.com/IntelRealSense/realsense-ros.git
    cd ~/ros2_ws
    ```
 
@@ -137,8 +137,8 @@ For the entire list of parameters type `ros2 param list`.
 
 - **rosbag_filename**: Will publish topics from rosbag file.
 - **initial_reset**: On occasions the device was not closed properly and due to firmware issues needs to reset. If set to true, the device will reset prior to usage.
-- **align_depth**: If set to true, will publish additional topics with the all the images aligned to the depth image.</br>
-The topics are of the form: ```/camera/aligned_depth_to_color/image_raw``` etc.
+- **align_depth**: If set to true, will publish additional topics for the "aligned depth to color" image.: ```/camera/aligned_depth_to_color/image_raw```, ```/camera/aligned_depth_to_color/camera_info```.</br>
+The pointcloud, if enabled, will be built based on the aligned_depth_to_color image.</br>
 - **filters**: any of the following options, separated by commas:</br>
  - ```colorizer```: will color the depth image. On the depth topic an RGB image will be published, instead of the 16bit depth values .
  - ```pointcloud```: will add a pointcloud topic `/camera/depth/color/points`.
@@ -157,9 +157,9 @@ The topics are of the form: ```/camera/aligned_depth_to_color/image_raw``` etc.
    - ```hole_filling``` - apply hole-filling filter.
    - ```decimation``` - reduces depth scene complexity.
 - **enable_sync**: gathers closest frames of different sensors, infra red, color and depth, to be sent with the same timetag. This happens automatically when such filters as pointcloud are enabled.
-- ***<stream_type>*_width**, ***<stream_type>*_height**, ***<stream_type>*_fps**: <stream_type> can be any of *infra, color, fisheye, depth, gyro, accel, pose*. Sets the required format of the device. If the specified combination of parameters is not available by the device, the stream will be replaced with the default for that stream. Setting a value to 0, will choose the first format in the inner list. (i.e. consistent between runs but not defined).</br>*Note: for gyro accel and pose, only _fps option is meaningful.
-- ***<stream_type>*_qos**: <stream_type> can be any of *infra, color, fisheye, depth, gyro, accel, pose*. Sets the QoS by which the topic is published. Available values are the following strings: SYSTEM_DEFAULT, PARAMETER_EVENTS, SERVICES_DEFAULT, PARAMETERS, DEFAULT, SENSOR_DATA.
-- **enable_*<stream_name>***: Choose whether to enable a specified stream or not. Default is true for images and false for orientation streams. <stream_name> can be any of *infra1, infra2, color, depth, fisheye, fisheye1, fisheye2, gyro, accel, pose*.
+- ***<stream_type>*_width**, ***<stream_type>*_height**, ***<stream_type>*_fps**: <stream_type> can be any of *infra, color, fisheye, depth, gyro, accel, pose, confidence*. Sets the required format of the device. If the specified combination of parameters is not available by the device, the stream will be replaced with the default for that stream. Setting a value to 0, will choose the first format in the inner list. (i.e. consistent between runs but not defined).</br>*Note: for gyro accel and pose, only _fps option is meaningful.
+- ***<stream_type>*_qos**: <stream_type> can be any of *infra, color, fisheye, depth, gyro, accel, pose, confidence*. Sets the QoS by which the topic is published. Available values are the following strings: SYSTEM_DEFAULT, PARAMETER_EVENTS, SERVICES_DEFAULT, PARAMETERS, DEFAULT, SENSOR_DATA.
+- **enable_*<stream_name>***: Choose whether to enable a specified stream or not. Default is true for images and false for orientation streams. <stream_name> can be any of *infra1, infra2, color, depth, fisheye, fisheye1, fisheye2, gyro, accel, pose, confidence*.
 
 - ***<stream_name>*_frame_id**, ***<stream_name>*_optical_frame_id**, **aligned_depth_to_*<stream_name>*_frame_id**: Specify the different frame_id for the different frames. Especially important when using multiple cameras.
 
@@ -182,6 +182,9 @@ Setting *unite_imu_method* creates a new topic, *imu*, that replaces the default
   - **NOTE** The configuration required for `enable_infra` is independent of `enable_depth`
   - **NOTE** To enable the Infrared stream, you should enable `enable_infra:=true` NOT `enable_infra1:=true` nor `enable_infra2:=true`
   - **NOTE** This feature is only supported by Realsense sensors with RGB streams available from the `infra` cameras, which can be checked by observing the output of `rs-enumerate-devices`
+
+### Available services:
+- enable : Start/Stop all streaming sensors. Usage example: `ros2 service call /camera/enable std_srvs/srv/SetBool "{data: False}"`
 
 ## Using T265 ##
 
