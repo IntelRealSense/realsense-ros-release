@@ -2,6 +2,20 @@
 Changelog for package realsense2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.2.0 (2021-05-05)
+------------------
+* Added filling correct Tx, Ty values in projection matrix of right camera.
+* Fixed frame_id of right sensor to match left sensor in a stereo pair.pair
+* Contributors: Pavlo Kolomiiets, doronhi
+
+3.1.6 (2021-05-05)
+------------------
+* Fix pointcloud message size when no texture is added.
+* migration toggle_sensors feature to ros2
+* Add option for aligning pointcloud to color image.
+* removed option to align to other streams other then color.
+* Contributors: anaelle, doronhi
+
 3.1.5 (2021-03-24)
 ------------------
 * Support Eloquent and Dashing.
