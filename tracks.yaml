@@ -50,7 +50,7 @@ tracks:
     ros_distro: foxy
     vcs_type: git
     vcs_uri: https://github.com/IntelRealSense/realsense-ros.git
-    version: 3.1.5
+    version: 3.2.0
   kinetic:
     actions:
     - bloom-export-upstream :{vcs_local_uri} :{vcs_type} --tag :{release_tag} --display-uri
