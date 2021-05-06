@@ -1,16 +1,17 @@
 import os
 import sys
+import signal
+import shlex
 from rs2_listener import CWaitForMessage
-
-import rosbag
-from cv_bridge import CvBridge, CvBridgeError
+import rclpy
+from rclpy.node import Node
+from importRosbag.importRosbag import importRosbag
 import numpy as np
-import tf
+if (os.getenv('ROS_DISTRO') != "dashing"):
+    import tf2_ros
 import itertools
 import subprocess
-import rospy
 import time
-import rosservice
 
 global tf_timeout
 tf_timeout = 5
@@ -19,18 +20,12 @@ def ImuGetData(rec_filename, topic):
     # res['value'] = first value of topic.
     # res['max_diff'] = max difference between returned value and all other values of topic in recording.
 
-    bag = rosbag.Bag(rec_filename)
     res = dict()
     res['value'] = None
     res['max_diff'] = [0,0,0]
-    for topic, msg, t in bag.read_messages(topics=topic):
-        value = np.array([msg.linear_acceleration.x, msg.linear_acceleration.y, msg.linear_acceleration.z])
-        if res['value'] is None:
-            res['value'] = value
-        else:
-            diff = abs(value - res['value'])
-            res['max_diff'] = [max(diff[x], res['max_diff'][x]) for x in range(len(diff))]
-    res['max_diff'] = np.array(res['max_diff'])
+    data = importRosbag(rec_filename, importTopics=[topic], log='ERROR', disable_bar=True)[topic]
+    res['value'] = data['acc'][0,:]
+    res['max_diff'] = data['acc'].max(0) - data['acc'].min(0)
     return res
 
 def AccelGetData(rec_filename):
@@ -39,7 +34,7 @@ def AccelGetData(rec_filename):
 def AccelGetDataDeviceStandStraight(rec_filename):
     gt_data = AccelGetData(rec_filename)
     gt_data['ros_value'] = np.array([0.63839424, 0.05380408, 9.85343552])
-    gt_data['ros_max_diff'] = np.array([1.97013582e-02, 4.65862500e-09, 4.06165277e-02])
+    gt_data['ros_max_diff'] = np.array([0.06940174, 0.04032778, 0.05982018])
     return gt_data
 
 def ImuTest(data, gt_data):
@@ -55,7 +50,7 @@ def ImuTest(data, gt_data):
         if max_diff > gt_data['max_diff'].max():
             return False, msg
 
-        v_data = data['ros_value'][0]
+        v_data = np.array(data['ros_value']).mean(0)
         v_gt_data = gt_data['ros_value']
         diff = v_data - v_gt_data
         max_diff = abs(diff).max()
@@ -70,31 +65,25 @@ def ImuTest(data, gt_data):
     return True, ''
 
 def ImageGetData(rec_filename, topic):
-    bag = rosbag.Bag(rec_filename)
-    bridge = CvBridge()
     all_avg = []
     ok_percent = []
     res = dict()
 
-    for topic, msg, t in bag.read_messages(topics=topic):
-        try:
-            cv_image = bridge.imgmsg_to_cv2(msg, msg.encoding)
-        except CvBridgeError as e:
-            print(e)
-            continue
-        pyimg = np.asarray(cv_image)
+    data = importRosbag(rec_filename, importTopics=[topic], log='ERROR', disable_bar=True)[topic]
+    for pyimg in data['frames']:
         ok_number = (pyimg != 0).sum()
         ok_percent.append(float(ok_number) / (pyimg.shape[0] * pyimg.shape[1]))
         all_avg.append(pyimg.sum() / ok_number)
 
     all_avg = np.array(all_avg)
-    channels = cv_image.shape[2] if len(cv_image.shape) > 2 else 1
+
+    channels = pyimg.shape[2] if len(pyimg.shape) > 2 else 1
     res['num_channels'] = channels
-    res['shape'] = cv_image.shape
+    res['shape'] = pyimg.shape
     res['avg'] = all_avg.mean()
     res['ok_percent'] = {'value': (np.array(ok_percent).mean()) / channels, 'epsilon': 0.01}
     res['epsilon'] = max(all_avg.max() - res['avg'], res['avg'] - all_avg.min())
-    res['reported_size'] = [msg.width, msg.height, msg.step]
+    res['reported_size'] = [pyimg.shape[1], pyimg.shape[0], pyimg.shape[1]*pyimg.dtype.itemsize*channels]
 
     return res
 
@@ -127,6 +116,9 @@ def ImageColorTest(data, gt_data):
     # check that all data['num_channels'] are the same as gt_data['num_channels'] and that avg value of all
     # images are within epsilon of gt_data['avg']
     try:
+        if ('num_channels' not in data):
+            msg = 'No data received'
+            return False, msg
         channels = list(set(data['num_channels']))
         msg = 'Expect %d channels. Got %d channels.' % (gt_data['num_channels'], channels[0])
         print (msg)
@@ -195,8 +187,12 @@ def staticTFTest(data, gt_data):
         if data[couple] is None:
             msg = 'Tf is None for couple %s' % '->'.join(couple)
             return False, msg
-        if any(abs((np.array(data[couple][0]) - np.array(gt_data[couple][0]))) > 1e-5) or \
-           any(abs((np.array(data[couple][1]) - np.array(gt_data[couple][1]))) > 1e-5):
+        temp = data[couple].translation
+        np_trans = np.array([temp.x, temp.y, temp.z])
+        temp = data[couple].rotation
+        np_rot = np.array([temp.x, temp.y, temp.z, temp.w])
+        if any(abs(np_trans - gt_data[couple][0]) > 1e-5) or \
+           any(abs(np_rot - gt_data[couple][1]) > 1e-5):
            msg = 'Tf is changed for couple %s' % '->'.join(couple)
            return False, msg
     return True, ''
@@ -265,26 +261,34 @@ def print_results(results):
     print
 
 
-def get_tf(tf_listener, from_id, to_id):
-    global tf_timeout
-    try:
-        start_time = time.time()
-        # print 'Waiting for transform: %s -> %s for %.2f(sec)' % (from_id, to_id, tf_timeout)
-        tf_listener.waitForTransform(from_id, to_id, rospy.Time(), rospy.Duration(tf_timeout))
-        res = tf_listener.lookupTransform(from_id, to_id, rospy.Time())
-    except Exception as e:
-        res = None
-    finally:
-        waited_for = time.time() - start_time
-        tf_timeout = max(0.0, tf_timeout - waited_for)
-        return res
+def get_tfs(coupled_frame_ids):
+    res = dict()
+    if (os.getenv('ROS_DISTRO') == "dashing"):
+        for couple in coupled_frame_ids:
+            res[couple] = None
+    else:
+        tfBuffer = tf2_ros.Buffer()
+        node = Node('tf_listener')
+        listener = tf2_ros.TransformListener(tfBuffer, node)
+        rclpy.spin_once(node)
+        for couple in coupled_frame_ids:
+            from_id, to_id = couple
+            if (tfBuffer.can_transform(from_id, to_id, rclpy.time.Time(), rclpy.time.Duration(nanoseconds=3e6))):
+                res[couple] = tfBuffer.lookup_transform(from_id, to_id, rclpy.time.Time(), rclpy.time.Duration(nanoseconds=1e6)).transform
+            else:
+                res[couple] = None
+    return res
 
+def kill_realsense2_camera_node():
+    cmd = "kill -s INT $(ps aux | grep '[r]ealsense2_camera_node' | awk '{print $2}')"
+    os.system(cmd)
 
 def run_tests(tests):
     msg_params = {'timeout_secs': 5}
     results = []
     params_strs = set([test['params_str'] for test in tests])
     for params_str in params_strs:
+        rclpy.init()
         rec_tests = [test for test in tests if test['params_str'] == params_str]
         themes = [test_types[test['type']]['listener_theme'] for test in rec_tests]
         msg_retriever = CWaitForMessage(msg_params)
@@ -297,19 +301,23 @@ def run_tests(tests):
             print 
             print ('*'*8 + ' Starting ROS ' + '*'*8)
             print ('running node (%d/%d)' % (run_no, num_of_startups))
-            cmd_params = ['roslaunch', 'realsense2_camera', 'rs_from_file.launch'] + params_str.split(' ')
+            cmd_params = ['ros2', 'launch', 'realsense2_camera', 'rs_launch.py'] + params_str.split(' ')
             print ('running command: ' + ' '.join(cmd_params))
             p_wrapper = subprocess.Popen(cmd_params, stdout=None, stderr=None)
             time.sleep(2)
-            service_list = rosservice.get_service_list()
-            is_node_up = len([service for service in service_list if 'realsense2_camera/' in service]) > 0
+            service_list = subprocess.check_output(['ros2', 'node', 'list']).decode("utf-8")
+            is_node_up = '/camera/camera' in service_list
             if is_node_up:
                 print ('Node is UP')
                 break
+
             print ('Node is NOT UP')
             print ('*'*8 + ' Killing ROS ' + '*'*9)
-            p_wrapper.terminate()
-            p_wrapper.wait()
+            try:
+                p_wrapper.terminate()
+                p_wrapper.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                kill_realsense2_camera_node()
             print ('DONE')
 
         if is_node_up:
@@ -317,14 +325,17 @@ def run_tests(tests):
             if 'static_tf' in [test['type'] for test in rec_tests]:
                 print ('Gathering static transforms')
                 frame_ids = ['camera_link', 'camera_depth_frame', 'camera_infra1_frame', 'camera_infra2_frame', 'camera_color_frame', 'camera_fisheye_frame', 'camera_pose']
-                tf_listener = tf.TransformListener()
-                listener_res['static_tf'] = dict([(xx, get_tf(tf_listener, xx[0], xx[1])) for xx in itertools.combinations(frame_ids, 2)])
+                coupled_frame_ids = [xx for xx in itertools.combinations(frame_ids, 2)]
+                listener_res['static_tf'] = get_tfs(coupled_frame_ids)
+
             print ('*'*8 + ' Killing ROS ' + '*'*9)
-            p_wrapper.terminate()
+            kill_realsense2_camera_node()
             p_wrapper.wait()
+            print ('*'*8 + ' Killed ' + '*'*9)
         else:
             listener_res = dict([[theme_name, {}] for theme_name in themes])
 
+        rclpy.shutdown()
         print ('*'*30)
         print ('DONE run')
         print ('*'*30)
@@ -339,7 +350,6 @@ def run_tests(tests):
 
     return results
 
-
 def main():
     outdoors_filename = './records/outdoors_1color.bag'
     all_tests = [{'name': 'non_existent_file', 'type': 'no_file', 'params': {'rosbag_filename': '/home/non_existent_file.txt'}},
@@ -351,13 +361,22 @@ def main():
                 #  {'name': 'align_depth_ir1_1', 'type': 'align_depth_ir1', 'params': {'rosbag_filename': outdoors_filename, 'align_depth': 'true'}},
                  {'name': 'depth_avg_decimation_1', 'type': 'depth_avg_decimation', 'params': {'rosbag_filename': outdoors_filename, 'filters': 'decimation'}},
                 #  {'name': 'align_depth_ir1_decimation_1', 'type': 'align_depth_ir1_decimation', 'params': {'rosbag_filename': outdoors_filename, 'filters': 'decimation', 'align_depth': 'true'}},
-                #  {'name': 'static_tf_1', 'type': 'static_tf', 'params': {'rosbag_filename': outdoors_filename}},   # Not working in Travis...
-                #  {'name': 'accel_up_1', 'type': 'accel_up', 'params': {'rosbag_filename': './records/D435i_Depth_and_IMU_Stands_still.bag'}},  # Keeps failing on Travis CI. See https://github.com/IntelRealSense/realsense-ros/pull/1504#issuecomment-744226704
                  ]
+    if (os.getenv('ROS_DISTRO') != "dashing"):
+        all_tests.extend([
+                    {'name': 'static_tf_1', 'type': 'static_tf', 'params': {'rosbag_filename': outdoors_filename}},   # Not working in Travis...
+                    {'name': 'accel_up_1', 'type': 'accel_up', 'params': {'rosbag_filename': './records/D435i_Depth_and_IMU_Stands_still.bag', 'enable_accel': 'true', 'accel_fps': '0.0'}},
+        ])
 
     # Normalize parameters:
     for test in all_tests:
         test['params']['rosbag_filename'] = os.path.abspath(test['params']['rosbag_filename'])
+        test['params']['color_width'] = '0'
+        test['params']['color_height'] = '0'
+        test['params']['depth_width'] = '0'
+        test['params']['depth_height'] = '0'
+        test['params']['infra_width'] = '0'
+        test['params']['infra_height'] = '0'
         test['params_str'] = ' '.join([key + ':=' + test['params'][key] for key in sorted(test['params'].keys())])
 
     if len(sys.argv) < 2 or '--help' in sys.argv or '/?' in sys.argv:
