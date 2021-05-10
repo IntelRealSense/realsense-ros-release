@@ -2,6 +2,11 @@
 Changelog for package realsense2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+3.2.1 (2021-05-10)
+------------------
+* Add build dependency **ros_environment**
+* Contributors: doronhi
+
 3.2.0 (2021-05-05)
 ------------------
 * Added filling correct Tx, Ty values in projection matrix of right camera.
