@@ -1,0 +1,12 @@
+Source: ros-dashing-realsense2-description
+Section: misc
+Priority: optional
+Maintainer: Doron Hirshberg <doron.hirshberg@intel.com>
+Build-Depends: debhelper (>= 9.0.0), ros-dashing-ament-cmake, ros-dashing-ament-lint-auto, ros-dashing-ament-lint-common, ros-dashing-rclcpp, ros-dashing-rclcpp-components, ros-dashing-realsense2-camera-msgs, ros-dashing-ros-workspace
+Homepage: https://wiki.ros.org/realsense2_camera
+Standards-Version: 3.9.2
+
+Package: ros-dashing-realsense2-description
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-dashing-launch-ros, ros-dashing-rclcpp, ros-dashing-rclcpp-components, ros-dashing-realsense2-camera-msgs, ros-dashing-xacro, ros-dashing-ros-workspace
+Description: RealSense Camera description package for Intel 3D D400 cameras
