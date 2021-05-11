@@ -1,0 +1,12 @@
+Source: ros-dashing-realsense2-camera
+Section: misc
+Priority: optional
+Maintainer: Doron Hirshberg <doron.hirshberg@intel.com>
+Build-Depends: debhelper (>= 9.0.0), libeigen3-dev, libopencv-dev, ros-dashing-ament-cmake, ros-dashing-ament-cmake-gtest, ros-dashing-ament-lint-auto, ros-dashing-ament-lint-common, ros-dashing-builtin-interfaces, ros-dashing-cv-bridge, ros-dashing-geometry-msgs, ros-dashing-image-transport, ros-dashing-librealsense2, ros-dashing-nav-msgs, ros-dashing-rclcpp, ros-dashing-rclcpp-components, ros-dashing-realsense2-camera-msgs, ros-dashing-ros-environment, ros-dashing-sensor-msgs, ros-dashing-std-msgs, ros-dashing-std-srvs, ros-dashing-tf2, ros-dashing-tf2-ros, ros-dashing-ros-workspace
+Homepage: http://www.ros.org/wiki/RealSense
+Standards-Version: 3.9.2
+
+Package: ros-dashing-realsense2-camera
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libeigen3-dev, ros-dashing-builtin-interfaces, ros-dashing-cv-bridge, ros-dashing-geometry-msgs, ros-dashing-image-transport, ros-dashing-launch-ros, ros-dashing-librealsense2, ros-dashing-nav-msgs, ros-dashing-rclcpp, ros-dashing-rclcpp-components, ros-dashing-realsense2-camera-msgs, ros-dashing-sensor-msgs, ros-dashing-std-msgs, ros-dashing-std-srvs, ros-dashing-tf2, ros-dashing-tf2-ros, ros-dashing-ros-workspace
+Description: RealSense Camera package allowing access to Intel SR300, D400 and L500 3D cameras
