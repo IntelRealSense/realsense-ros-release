@@ -1,3 +1,29 @@
+## realsense2_camera (dashing) - 3.2.1-1
+
+The packages in the `realsense2_camera` repository were released into the `dashing` distro by running `/usr/bin/bloom-release --ros-distro dashing realsense2_camera --new-track` on `Tue, 11 May 2021 04:45:45 -0000`
+
+These packages were released:
+- `realsense2_camera`
+- `realsense2_camera_msgs`
+- `realsense2_description`
+
+Version of package(s) in repository `realsense2_camera`:
+
+- upstream repository: https://github.com/IntelRealSense/realsense-ros.git
+- release repository: unknown
+- rosdistro version: `null`
+- old version: `null`
+- new version: `3.2.1-1`
+
+Versions of tools used:
+
+- bloom version: `0.10.7`
+- catkin_pkg version: `0.4.22`
+- rosdep version: `0.20.0`
+- rosdistro version: `0.8.2`
+- vcstools version: `0.1.42`
+
+
 ## realsense2_camera (foxy) - 3.2.1-1
 
 The packages in the `realsense2_camera` repository were released into the `foxy` distro by running `/usr/bin/bloom-release --ros-distro foxy realsense2_camera --edit` on `Mon, 10 May 2021 08:15:07 -0000`
