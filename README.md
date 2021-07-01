@@ -5,7 +5,7 @@ This version supports Kinetic, Melodic and Noetic distributions.
 
 For running in ROS2 environment please switch to the [ros2 branch](https://github.com/IntelRealSense/realsense-ros/tree/ros2). </br>
 
-LibRealSense2 supported version: v2.45.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
+LibRealSense2 supported version: v2.48.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
 
 ## Installation Instructions
 
@@ -28,7 +28,7 @@ LibRealSense2 supported version: v2.45.0 (see [realsense2_camera release notes](
     
     ```sudo apt-get install ros-$ROS_DISTRO-realsense2-camera```
 
-    This will install both realsense2_camera and its dependents, including librealsense2 library.
+    This will install both realsense2_camera and its dependents, including librealsense2 library and matching udev-rules.
 
     Notice:
     * The version of librealsense2 is almost always behind the one availeable in RealSense&trade; official repository.
@@ -47,8 +47,10 @@ LibRealSense2 supported version: v2.45.0 (see [realsense2_camera release notes](
    ### Step 1: Install the latest Intel&reg; RealSense&trade; SDK 2.0
 
     *Ubuntu*
-
-    * Install from [Debian Package](https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_linux.md#installing-the-packages)
+    
+    Install librealsense2 debian package:
+    * Jetson users - use the [Jetson Installation Guide](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation_jetson.md)
+    * Otherwise, install from [Linux Debian Installation Guide](https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_linux.md#installing-the-packages)
       - In that case treat yourself as a developer. Make sure you follow the instructions to also install librealsense2-dev and librealsense2-dkms packages.
 
     *Windows* 
@@ -57,7 +59,7 @@ LibRealSense2 supported version: v2.45.0 (see [realsense2_camera release notes](
         `vcpkg install realsense2:x64-windows` 
 
    #### OR
-   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.45.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
+   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.48.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
 
 
    ### Step 2: Install Intel&reg; RealSense&trade; ROS from Sources
@@ -293,8 +295,8 @@ roslaunch realsense2_description view_d415_model.launch
 Unit-tests are based on bag files saved on S3 server. These can be downloaded using the following commands:
 ```bash
 cd catkin_ws
-wget "http://realsense-hw-public.s3.amazonaws.com/rs-tests/TestData/outdoors.bag" -P "records/"
-wget "http://realsense-hw-public.s3-eu-west-1.amazonaws.com/rs-tests/D435i_Depth_and_IMU_Stands_still.bag" -P "records/"
+wget "https://librealsense.intel.com/rs-tests/TestData/outdoors.bag" -P "records/"
+wget "https://librealsense.intel.com/rs-tests/D435i_Depth_and_IMU_Stands_still.bag" -P "records/"
 ```
 Then, unit-tests can be run using the following command (use either python or python3):
 ```bash
