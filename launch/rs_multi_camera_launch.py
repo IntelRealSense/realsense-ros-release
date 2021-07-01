@@ -20,7 +20,7 @@
 # For each device, the parameter name was changed to include an index.
 # For example: to set camera_name for device1 set parameter camera_name1.
 # command line example:
-# ros2 launch realsense2_camera rs_multi_camera.launch.py camera_name1:=D400 config_file1:='d435i.yaml' device_type2:=l5. device_type1:=d4..
+# ros2 launch realsense2_camera rs_multi_camera_launch.py camera_name1:=my_D435 device_type1:=d435 camera_name2:=my_d415 device_type2:=d415 
 
 """Launch realsense2_camera node."""
 import copy
@@ -32,6 +32,10 @@ import sys
 import pathlib
 sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
 import rs_launch
+
+local_parameters = [{'name': 'camera_name1', 'default': 'camera1', 'description': 'camera unique name'},
+                    {'name': 'camera_name2', 'default': 'camera2', 'description': 'camera unique name'},
+                   ]
 
 def set_configurable_parameters(local_params):
     return dict([(param['original_name'], LaunchConfiguration(param['name'])) for param in local_params])
@@ -48,6 +52,7 @@ def generate_launch_description():
     params1 = duplicate_params(rs_launch.configurable_parameters, '1')
     params2 = duplicate_params(rs_launch.configurable_parameters, '2')
     return LaunchDescription(
+        rs_launch.declare_configurable_parameters(local_parameters) +
         rs_launch.declare_configurable_parameters(params1) + 
         rs_launch.declare_configurable_parameters(params2) + 
         [
