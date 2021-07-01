@@ -1,13 +1,13 @@
 # ROS2 Wrapper for Intel&reg; RealSense&trade; Devices
 These are packages for using Intel RealSense cameras (D400 and L500 series, SR300 camera and T265 Tracking Module) with ROS2.
 
-LibRealSense supported version: v2.45.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
+LibRealSense supported version: v2.48.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
 
 ## Installation Instructions
 This version supports ROS2 Dashing, Eloquent and Foxy.
 
    ### Step 1: Install the ROS2 distribution
-   - #### Install [ROS2 Dashing](https://index.ros.org/doc/ros2/Installation/dashing/Linux-Install-Debians/), on Ubuntu 18.04 or [ROS2 Foxy](https://index.ros.org/doc/ros2/Installation/foxy/Linux-Install-Debians/), on Ubuntu 20.04
+   - #### Install [ROS2 Dashing](https://docs.ros.org/en/dashing/Installation/Ubuntu-Install-Debians.html), on Ubuntu 18.04 or [ROS2 Foxy](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html), on Ubuntu 20.04
 
 ### There are 2 sources to install realsense2_camera from:
 
@@ -19,7 +19,7 @@ This version supports ROS2 Dashing, Eloquent and Foxy.
     
     ```sudo apt-get install ros-$ROS_DISTRO-realsense2-camera```
 
-    This will install both realsense2_camera and its dependents, including librealsense2 library.
+    This will install both realsense2_camera and its dependents, including librealsense2 library and matching udev-rules.
 
     Notice:
     * The version of librealsense2 is almost always behind the one availeable in RealSense&trade; official repository.
@@ -33,11 +33,14 @@ This version supports ROS2 Dashing, Eloquent and Foxy.
 
    ### Step 1: Install the latest Intel&reg; RealSense&trade; SDK 2.0
 
-   ### Install the latest Intel&reg; RealSense&trade; SDK 2.0
-   - #### Install from [Debian Package](https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_linux.md#installing-the-packages) - In that case treat yourself as a developer. Make sure you follow the instructions to also install librealsense2-dev and librealsense-dkms packages.
+    Install librealsense2 debian package:
+    * Jetson users - use the [Jetson Installation Guide](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation_jetson.md)
+    * Otherwise, install from [Linux Debian Installation Guide](https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_linux.md#installing-the-packages)
+      - In that case treat yourself as a developer. Make sure you follow the instructions to also install librealsense2-dev and librealsense2-dkms packages.
+
 
    #### OR
-   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.45.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
+   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.48.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
 
 
    ### Step 3: Install Intel&reg; RealSense&trade; ROS2 wrapper from Sources
@@ -87,6 +90,10 @@ ros2 launch realsense2_camera rs_launch.py enable_pointcloud:=true device_type:=
 or, without using the supplement launch files:
 ```bash
 ros2 run realsense2_camera realsense2_camera_node --ros-args -p filters:=colorizer
+```
+or, with a demo config file:
+```bash
+ros2 launch realsense2_camera rs_launch.py config_file:="'$COLCON_PREFIX_PATH/realsense2_camera/share/realsense2_camera/config/d435i.yaml'"
 ```
 
 
@@ -158,7 +165,7 @@ The pointcloud, if enabled, will be built based on the aligned_depth_to_color im
    - ```decimation``` - reduces depth scene complexity.
 - **enable_sync**: gathers closest frames of different sensors, infra red, color and depth, to be sent with the same timetag. This happens automatically when such filters as pointcloud are enabled.
 - ***<stream_type>*_width**, ***<stream_type>*_height**, ***<stream_type>*_fps**: <stream_type> can be any of *infra, color, fisheye, depth, gyro, accel, pose, confidence*. Sets the required format of the device. If the specified combination of parameters is not available by the device, the stream will be replaced with the default for that stream. Setting a value to 0, will choose the first format in the inner list. (i.e. consistent between runs but not defined).</br>*Note: for gyro accel and pose, only _fps option is meaningful.
-- ***<stream_type>*_qos**: <stream_type> can be any of *infra, color, fisheye, depth, gyro, accel, pose, confidence*. Sets the QoS by which the topic is published. Available values are the following strings: SYSTEM_DEFAULT, PARAMETER_EVENTS, SERVICES_DEFAULT, PARAMETERS, DEFAULT, SENSOR_DATA.
+- ***<stream_type>*_qos**, ***<stream_type>*_info_qos**, and ***<stream_type>*_extrinsics_qos**: <stream_type> can be any of *infra, color, fisheye, depth, gyro, accel, pose, confidence, pointcloud, imu*. Sets the QoS by which the topic is published. Available values are the following strings: SYSTEM_DEFAULT, PARAMETER_EVENTS, SERVICES_DEFAULT, PARAMETERS, DEFAULT, SENSOR_DATA, HID_DEFAULT (= DEFAULT with depth of 100), EXTRINSICS_DEFAULT (= DEFAULT with depth of 1 and transient local durabilty).
 - **enable_*<stream_name>***: Choose whether to enable a specified stream or not. Default is true for images and false for orientation streams. <stream_name> can be any of *infra1, infra2, color, depth, fisheye, fisheye1, fisheye2, gyro, accel, pose, confidence*.
 
 - ***<stream_name>*_frame_id**, ***<stream_name>*_optical_frame_id**, **aligned_depth_to_*<stream_name>*_frame_id**: Specify the different frame_id for the different frames. Especially important when using multiple cameras.
@@ -186,13 +193,73 @@ Setting *unite_imu_method* creates a new topic, *imu*, that replaces the default
 ### Available services:
 - enable : Start/Stop all streaming sensors. Usage example: `ros2 service call /camera/enable std_srvs/srv/SetBool "{data: False}"`
 
+### Point Cloud
+Here is an example of how to start the camera node and make it publish the point cloud using the pointcloud option.
+```bash
+ros2 launch realsense2_camera demo_pointcloud_launch.py
+```
+An rviz2 node opens to watch the pointcloud:
+<p align="center"><img src="https://user-images.githubusercontent.com/40540281/122672460-42dd3f80-d1d4-11eb-8767-4e61a64ced5b.gif" /></p>
+
+
+### Aligned Depth Frames
+Here is an example of how to start the camera node and make it publish the aligned depth stream to color stream.
+```bash
+ros2 launch realsense2_camera rs_launch.py align_depth:=true
+```
+Looking at the published topics:
+
+```bash
+ros2 topic list
+```
+
+#### **/camera/aligned_depth_to_color/camera_info**
+#### **/camera/aligned_depth_to_color/image_raw**
+#### /camera/color/camera_info
+#### /camera/color/image_raw
+#### /camera/depth/camera_info
+#### /camera/depth/image_rect_raw
+#### /camera/extrinsics/depth_to_color
+#### /parameter_events
+#### /rosout
+#### /tf
+#### /tf_static
+
+
+### View and Modify Camera Controls Params in runtime:
+The following command allow to change camera control values.
+```bash
+ros2 run rqt_reconfigure rqt_reconfigure
+```
+<p align="center"><img src="https://user-images.githubusercontent.com/40540281/122672659-6f458b80-d1d5-11eb-9262-545d2073e1da.png" /></p>
+
+### Work with multiple cameras
+Every realsense2_camera node is an independent process. One can 2 nodes using a dedicated launch file:
+```bash
+ros2 launch realsense2_camera rs_multi_camera_launch.py camera_name1:=my_D435 device_type1:=d435 camera_name2:=my_d415 device_type2:=d415
+```
+or by specifying serial numbers and using default *camera1* and *camera2* node names:
+```
+ros2 launch realsense2_camera rs_multi_camera_launch.py serial_no1:=_036522070660 serial_no2:=_725112060349
+```
+or launch each from a separate terminal:
+```bash
+ros2 launch realsense2_camera rs_launch.py camera_name:=my_d415 serial_no:=_036522070660
+```
+and 
+```bash
+ros2 launch realsense2_camera rs_launch.py camera_name:=my_d435 serial_no:=_725112060349
+```
+Notice the importance of defining a different camera_name for each node as this is the header of the topics.
+
+
 ## Using T265 ##
 
 ### Start the camera node
 To start the camera node in ROS:
 
 ```bash
-ros2 run realsense2_camera realsense2_camera_node --ros-args -p enable_pose:=true -p device_type:=t265 -p fisheye_width:=848 -p fisheye_height:=800
+ros2 launch realsense2_camera rs_t265_launch.py
 ```
 or, if you also have a d4xx connected, you can try out the launch file:
 ```bash
@@ -200,7 +267,22 @@ ros2 launch realsense2_camera rs_d400_and_t265_launch.py enable_fisheye12:=true 
 ```
 - note: the parameters are called `enable_fisheye12` and `enable_fisheye22`. The node knows them as `enable_fisheye1` and `enable_fisheye2` but launch file runs 2 nodes and these parameters refer to the second one.
 
-## Still on the pipelie:
+To visualize the pose output and frames in RViz, start:
+```bash
+ros2 launch realsense2_camera demo_t265_launch.py
+```
+
+### realsense2_description package:
+For viewing included models, a separate package, realsense2_description, is included. For example:
+```bash
+ros2 launch realsense2_description view_model.launch.py model:=test_d415_camera.urdf.xacro
+```
+or, to list available models:
+```
+ros2 launch realsense2_description view_model.launch.py
+```
+
+## Still on the pipeline:
 * Support ROS2 life cycle.
 * Enable and disable sensors and filters.
 
@@ -208,8 +290,8 @@ ros2 launch realsense2_camera rs_d400_and_t265_launch.py enable_fisheye12:=true 
 Unit-tests are based on bag files saved on S3 server. These can be downloaded using the following commands:
 ```bash
 cd ros2_ws
-wget "http://realsense-hw-public.s3.amazonaws.com/rs-tests/TestData/outdoors.bag" -P "records/"
-wget "http://realsense-hw-public.s3-eu-west-1.amazonaws.com/rs-tests/D435i_Depth_and_IMU_Stands_still.bag" -P "records/"
+wget "https://librealsense.intel.com/rs-tests/TestData/outdoors_1color.bag" -P "records/"
+wget "https://librealsense.intel.com/rs-tests/D435i_Depth_and_IMU_Stands_still.bag" -P "records/"
 ```
 Then, unit-tests can be run using the following command (use either python or python3):
 ```bash
