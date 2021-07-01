@@ -7,7 +7,7 @@
 
 #define REALSENSE_ROS_MAJOR_VERSION    3
 #define REALSENSE_ROS_MINOR_VERSION    2
-#define REALSENSE_ROS_PATCH_VERSION    1
+#define REALSENSE_ROS_PATCH_VERSION    2
 
 #define STRINGIFY(arg) #arg
 #define VAR_ARG_STRING(arg) STRINGIFY(arg)
@@ -69,6 +69,7 @@ namespace realsense2_camera
     const uint16_t RS_T265_PID      = 0x0b37; // 
     const uint16_t RS_L515_PID_PRE_PRQ = 0x0B3D; // 
     const uint16_t RS_L515_PID      = 0x0B64; // 
+    const uint16_t RS_L535_PID      = 0x0b68;
     
 
     const bool ALIGN_DEPTH             = false;
@@ -80,10 +81,14 @@ namespace realsense2_camera
     const bool PUBLISH_TF        = true;
     const double TF_PUBLISH_RATE = 0; // Static transform
 
-    const int IMAGE_WIDTH          = 640;
-    const int IMAGE_HEIGHT         = 480;
-    const double IMAGE_FPS         = 30;
-    const std::string IMAGE_QOS    = "SYSTEM_DEFAULT";
+    const int IMAGE_WIDTH             = 640;
+    const int IMAGE_HEIGHT            = 480;
+    const double IMAGE_FPS            = 30;
+
+    const std::string IMAGE_QOS       = "SYSTEM_DEFAULT";
+    const std::string DEFAULT_QOS     = "DEFAULT";
+    const std::string HID_QOS         = "HID_DEFAULT";
+    const std::string EXTRINSICS_QOS  = "EXTRINSICS_DEFAULT";
 
     const double IMU_FPS      = 0;
 
