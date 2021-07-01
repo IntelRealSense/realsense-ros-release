@@ -1,16 +1,17 @@
 #pragma once
 
 #include <base_realsense_node.h>
-#include "std_msgs/msg/string.hpp"
 
 namespace realsense2_camera
 {
     class T265RealsenseNode : public BaseRealSenseNode
     {
         public:
-            T265RealsenseNode(rclcpp::Node& node,
-                          rs2::device dev, std::shared_ptr<Parameters> parameters);
-            virtual bool toggleSensors(bool enabled, std::string& msg) override;
+            T265RealsenseNode(ros::NodeHandle& nodeHandle,
+                          ros::NodeHandle& privateNodeHandle,
+                          rs2::device dev,
+                          const std::string& serial_no);
+            virtual void toggleSensors(bool enabled) override;
             virtual void publishTopics() override;
 
         protected:
@@ -19,10 +20,14 @@ namespace realsense2_camera
         private:
             void initializeOdometryInput();
             void setupSubscribers();
-            void odom_in_callback(const nav_msgs::msg::Odometry::SharedPtr msg);
+            void handleWarning();   
+            void odom_in_callback(const nav_msgs::Odometry::ConstPtr& msg);
+            void warningDiagnostic (diagnostic_updater::DiagnosticStatusWrapper &stat);
+            diagnostic_updater::Updater callback_updater;
 
-            rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr _odom_subscriber;
+            ros::Subscriber _odom_subscriber;
             rs2::wheel_odometer _wo_snr;
             bool _use_odom_in;
+            std::string  _T265_fault;
     };
 }
