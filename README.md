@@ -1,3 +1,29 @@
+## realsense2_camera (galactic) - 3.2.2-1
+
+The packages in the `realsense2_camera` repository were released into the `galactic` distro by running `/usr/bin/bloom-release --ros-distro galactic realsense2_camera --new-track` on `Thu, 01 Jul 2021 12:16:10 -0000`
+
+These packages were released:
+- `realsense2_camera`
+- `realsense2_camera_msgs`
+- `realsense2_description`
+
+Version of package(s) in repository `realsense2_camera`:
+
+- upstream repository: https://github.com/IntelRealSense/realsense-ros.git
+- release repository: unknown
+- rosdistro version: `null`
+- old version: `null`
+- new version: `3.2.2-1`
+
+Versions of tools used:
+
+- bloom version: `0.10.7`
+- catkin_pkg version: `0.4.23`
+- rosdep version: `0.20.0`
+- rosdistro version: `0.8.3`
+- vcstools version: `0.1.42`
+
+
 ## realsense2_camera (foxy) - 3.2.2-1
 
 The packages in the `realsense2_camera` repository were released into the `foxy` distro by running `/usr/bin/bloom-release --ros-distro foxy realsense2_camera --edit` on `Thu, 01 Jul 2021 11:21:35 -0000`
