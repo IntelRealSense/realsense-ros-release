@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import os
 import sys
-import rospy
-from realsense2_camera.msg import Metadata
+import rclpy
+from rclpy.node import Node
+from rclpy import qos
+from realsense2_camera_msgs.msg import Metadata
 import json
 
 def metadata_cb(msg):
@@ -24,11 +26,12 @@ def main():
 
     topic = sys.argv[1]
 
-    rospy.init_node('metadata_tester', anonymous=True)
+    rclpy.init()
+    node = Node('metadata_tester')
 
-    depth_sub = rospy.Subscriber(topic, Metadata, metadata_cb)
+    depth_sub = node.create_subscription(Metadata, topic, metadata_cb, qos.qos_profile_sensor_data)
 
-    rospy.spin()
+    rclpy.spin(node)
 
 if __name__ == '__main__':
     main()

@@ -6,9 +6,9 @@ name: CI
 on:
   # Triggers the workflow on push or pull request events but only for the development branch
   push:
-    branches: [ development ]
+    branches: [ ros2 ]
   pull_request:
-    branches: [ development ]
+    branches: [ ros2 ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -22,14 +22,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, ubuntu-18.04]
+        ros_distro: [foxy, galactic]
         include:
-        - os: ubuntu-20.04
-          ros_distro: 'noetic'
-          _python: 'python3'
-        - os: ubuntu-18.04
-          ros_distro: 'melodic'
-          _python: 'python'
+        - ros_distro: 'foxy'
+          os: ubuntu-20.04
+        - ros_distro: 'galactic'
+          os: ubuntu-20.04
 
     steps:   
     - uses: ros-tooling/setup-ros@v0.2
@@ -38,50 +36,46 @@ jobs:
     
     - name: Install dependencies
       run: |
-        echo _python:${{ matrix._python }}
-        echo ros_distro:${{ matrix.ros_distro }}
         sudo apt-get update
         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com --recv-key C8B3A55A6F3EFCDE
         sudo add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main"
         sudo apt-get update -qq
         sudo apt-get install librealsense2-dev --allow-unauthenticated -y
 
-    - name: Setup catkin workspace
+    - name: Setup ros2 workspace
       run: | 
-        echo "source /opt/ros/${{ matrix.ros_distro }}/setup.bash" >> ${{github.workspace}}/.bashrc
-        source ${{github.workspace}}/.bashrc
-        mkdir -p ${{github.workspace}}/catkin_ws/src
-        cd ${{github.workspace}}/catkin_ws/src
-        catkin_init_workspace
-        cd ..
+        mkdir -p ${{github.workspace}}/ros2/src
         
     - uses: actions/checkout@v2
       with:
-        path: 'catkin_ws/src/realsense-ros'
+        path: 'ros2/src/realsense-ros'
 
     - name: Build
       run: | 
+        echo "source /opt/ros/${{ matrix.ros_distro }}/setup.bash" >> ${{github.workspace}}/.bashrc
         source ${{github.workspace}}/.bashrc
-        cd ${{github.workspace}}/catkin_ws
+        cd ${{github.workspace}}/ros2
         rosdep update
         rosdep install -i --from-path src --rosdistro ${{ matrix.ros_distro }} -y
-        
-        catkin_make -DCATKIN_ENABLE_TESTING=False -DCMAKE_BUILD_TYPE=Release
-        catkin_make install
-        echo "source ${{github.workspace}}/catkin_ws/devel/setup.bash" >> ${{github.workspace}}/.bashrc
-        source ${{github.workspace}}/.bashrc
+        colcon build
         
     - name: Download data
       run: |
-        cd ${{github.workspace}}/catkin_ws
+        cd ${{github.workspace}}/ros2
         bag_filename="https://librealsense.intel.com/rs-tests/TestData/outdoors_1color.bag";
         wget $bag_filename -P "records/"
         bag_filename="https://librealsense.intel.com/rs-tests/D435i_Depth_and_IMU_Stands_still.bag";
         wget $bag_filename -P "records/"
-      
+
+    - name: Install packages for tests
+      run: |
+        sudo apt-get install python3-pip
+        pip3 install numpy --upgrade
+        pip3 install numpy-quaternion tqdm
+
     - name: Run tests
       run: |
-        cd ${{github.workspace}}/catkin_ws
+        cd ${{github.workspace}}/ros2
         source ${{github.workspace}}/.bashrc
-        ${{ matrix._python }} src/realsense-ros/realsense2_camera/scripts/rs2_test.py non_existent_file
-      
+        . install/local_setup.bash
+        python3 src/realsense-ros/realsense2_camera/scripts/rs2_test.py non_existent_file
