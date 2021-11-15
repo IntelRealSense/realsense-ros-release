@@ -7,7 +7,7 @@
 
 #define REALSENSE_ROS_MAJOR_VERSION    3
 #define REALSENSE_ROS_MINOR_VERSION    2
-#define REALSENSE_ROS_PATCH_VERSION    2
+#define REALSENSE_ROS_PATCH_VERSION    3
 
 #define STRINGIFY(arg) #arg
 #define VAR_ARG_STRING(arg) STRINGIFY(arg)
@@ -80,6 +80,7 @@ namespace realsense2_camera
 
     const bool PUBLISH_TF        = true;
     const double TF_PUBLISH_RATE = 0; // Static transform
+    const double DIAGNOSTICS_PERIOD = 0; // Static transform
 
     const int IMAGE_WIDTH             = 640;
     const int IMAGE_HEIGHT            = 480;
