@@ -1,13 +1,13 @@
 # ROS2 Wrapper for Intel&reg; RealSense&trade; Devices
 These are packages for using Intel RealSense cameras (D400 and L500 series, SR300 camera and T265 Tracking Module) with ROS2.
 
-LibRealSense supported version: v2.48.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
+LibRealSense supported version: v2.50.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
 
 ## Installation Instructions
 This version supports ROS2 Dashing, Eloquent and Foxy.
 
    ### Step 1: Install the ROS2 distribution
-   - #### Install [ROS2 Dashing](https://docs.ros.org/en/dashing/Installation/Ubuntu-Install-Debians.html), on Ubuntu 18.04 or [ROS2 Foxy](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html), on Ubuntu 20.04
+   - #### Install [ROS2 Dashing](https://docs.ros.org/en/dashing/Installation/Ubuntu-Install-Debians.html), on Ubuntu 18.04 or [ROS2 Foxy](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html) or [ROS2 Galactic](https://docs.ros.org/en/galactic/Installation/Ubuntu-Install-Debians.html), on Ubuntu 20.04
 
 ### There are 2 sources to install realsense2_camera from:
 
@@ -23,7 +23,7 @@ This version supports ROS2 Dashing, Eloquent and Foxy.
 
     Notice:
     * The version of librealsense2 is almost always behind the one availeable in RealSense&trade; official repository.
-    * librealsense2 is not built to use native v4l2 driver but the less stable RS-USB protocol. That is because the last is more general and operational on a larger variety of platforms. This have limitations when running multiple cameras and when using T265.
+    * librealsense2 is not built to use native v4l2 driver but the less stable RS-USB protocol. That is because the RS-USB protocol is more general and operational on a larger variety of platforms. This have limitations when running multiple cameras and when using T265.
     * realsense2_description is available as a separate debian package of ROS distribution. It includes the 3D-models of the devices and is necessary for running launch files that include these models (i.e. view_model.launch.py). It can be installed by typing:
     `sudo apt-get install ros-$ROS_DISTRO-realsense2-description`
 
@@ -40,7 +40,7 @@ This version supports ROS2 Dashing, Eloquent and Foxy.
 
 
    #### OR
-   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.48.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
+   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.50.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
 
 
    ### Step 3: Install Intel&reg; RealSense&trade; ROS2 wrapper from Sources
@@ -58,10 +58,9 @@ This version supports ROS2 Dashing, Eloquent and Foxy.
   ### Step 4: Install dependencies:
    ```bash
   sudo apt-get install python3-rosdep -y
-  sudo rosdep init
+  sudo rosdep init # "sudo rosdep init --include-eol-distros" for Dashing
   rosdep update
-  rosdep install -i --from-path src --rosdistro $ROS_DISTRO -y
-  sudo apt purge ros-$ROS_DISTRO-librealsense2 -y
+  rosdep install -i --from-path src --rosdistro $_ros_dist --skip-keys=librealsense2 -y
   ```
 
   ### Step 5: Build:
@@ -105,9 +104,11 @@ After running the above command with D435i attached, the following list of topic
 - /camera/accel/imu_info
 - /camera/color/camera_info
 - /camera/color/image_raw
+- /camera/color/metadata
 - /camera/depth/camera_info
 - /camera/depth/color/points
 - /camera/depth/image_rect_raw
+- /camera/depth/metadata
 - /camera/extrinsics/depth_to_color
 - /camera/extrinsics/depth_to_infra1
 - /camera/extrinsics/depth_to_infra2
@@ -119,6 +120,7 @@ After running the above command with D435i attached, the following list of topic
 - /camera/infra2/image_rect_raw
 - /camera/parameter_events
 - /camera/rosout
+- /diagnostics
 - /parameter_events
 - /rosout
 - /tf_static
@@ -141,7 +143,8 @@ For the entire list of parameters type `ros2 param list`.
   - Note: serial number can also be defined with "_" prefix. For instance, serial number 831612073525 can be set in command line as `serial_no:=_831612073525`. That is a workaround until a better method will be found to ROS2's auto conversion of strings containing only digits into integers.
 - **usb_port_id**: will attach to the device with the given USB port (*usb_port_id*). i.e 4-1, 4-2 etc. Default, ignore USB port when choosing a device.
 - **device_type**: will attach to a device whose name includes the given *device_type* regular expression pattern. Default, ignore device type. For example, device_type:=d435 will match d435 and d435i. device_type=d435(?!i) will match d435 but not d435i.
-
+- **reconnect_timeout**: When the driver cannot connect to the device try to reconnect after this timeout (in seconds).
+- **wait_for_device_timeout**: If the specified device is not found, will wait *wait_for_device_timeout* seconds before exits. Defualt, *wait_for_device_timeout < 0*, will wait indefinitely.
 - **rosbag_filename**: Will publish topics from rosbag file.
 - **initial_reset**: On occasions the device was not closed properly and due to firmware issues needs to reset. If set to true, the device will reset prior to usage.
 - **align_depth**: If set to true, will publish additional topics for the "aligned depth to color" image.: ```/camera/aligned_depth_to_color/image_raw```, ```/camera/aligned_depth_to_color/camera_info```.</br>
@@ -165,7 +168,8 @@ The pointcloud, if enabled, will be built based on the aligned_depth_to_color im
    - ```decimation``` - reduces depth scene complexity.
 - **enable_sync**: gathers closest frames of different sensors, infra red, color and depth, to be sent with the same timetag. This happens automatically when such filters as pointcloud are enabled.
 - ***<stream_type>*_width**, ***<stream_type>*_height**, ***<stream_type>*_fps**: <stream_type> can be any of *infra, color, fisheye, depth, gyro, accel, pose, confidence*. Sets the required format of the device. If the specified combination of parameters is not available by the device, the stream will be replaced with the default for that stream. Setting a value to 0, will choose the first format in the inner list. (i.e. consistent between runs but not defined).</br>*Note: for gyro accel and pose, only _fps option is meaningful.
-- ***<stream_type>*_qos**, ***<stream_type>*_info_qos**, and ***<stream_type>*_extrinsics_qos**: <stream_type> can be any of *infra, color, fisheye, depth, gyro, accel, pose, confidence, pointcloud, imu*. Sets the QoS by which the topic is published. Available values are the following strings: SYSTEM_DEFAULT, PARAMETER_EVENTS, SERVICES_DEFAULT, PARAMETERS, DEFAULT, SENSOR_DATA, HID_DEFAULT (= DEFAULT with depth of 100), EXTRINSICS_DEFAULT (= DEFAULT with depth of 1 and transient local durabilty).
+- ***<stream_type>*_qos**, ***<stream_type>*_info_qos**, and ***<stream_type>*_extrinsics_qos**: <stream_type> can be any of *infra, color, fisheye, depth, gyro, accel, pose, confidence, pointcloud, imu*. Sets the QoS by which the topic is published. Available values are the following strings: SYSTEM_DEFAULT, PARAMETER_EVENTS, SERVICES_DEFAULT, PARAMETERS, DEFAULT, SENSOR_DATA, HID_DEFAULT (= DEFAULT with depth of 100), EXTRINSICS_DEFAULT (= DEFAULT with depth of 1 and transient local durabilty).</br>
+**Notice:** ***<stream_type>*_info_qos** refers to both camera_info topics and metadata topics.
 - **enable_*<stream_name>***: Choose whether to enable a specified stream or not. Default is true for images and false for orientation streams. <stream_name> can be any of *infra1, infra2, color, depth, fisheye, fisheye1, fisheye2, gyro, accel, pose, confidence*.
 
 - ***<stream_name>*_frame_id**, ***<stream_name>*_optical_frame_id**, **aligned_depth_to_*<stream_name>*_frame_id**: Specify the different frame_id for the different frames. Especially important when using multiple cameras.
@@ -184,6 +188,7 @@ Setting *unite_imu_method* creates a new topic, *imu*, that replaces the default
 - **calib_odom_file**: For the T265 to include odometry input, it must be given a [configuration file](https://github.com/IntelRealSense/librealsense/blob/master/unit-tests/resources/calibration_odometry.json). Explanations can be found [here](https://github.com/IntelRealSense/librealsense/pull/3462). The calibration is done in ROS coordinates system.
 - **publish_tf**: boolean, publish or not TF at all. Defaults to True.
 - **tf_publish_rate**: double, positive values mean dynamic transform publication with specified rate, all other values mean static transform publication. Defaults to 0 
+- **diagnostics_period**: double, positive values set the period between diagnostics updates on the `/diagnostics` topic. 0 or negative values mean no diagnostics topic is published. Defaults to 0.
 - **publish_odom_tf**: If True (default) publish TF from odom_frame to pose_frame.
 - **infra_rgb**: When set to True (default: False), it configures the infrared camera to stream in RGB (color) mode, thus enabling the use of a RGB image in the same frame as the depth image, potentially avoiding frame transformation related errors. When this feature is required, you are additionally required to also enable `enable_infra:=true` for the infrared stream to be enabled.
   - **NOTE** The configuration required for `enable_infra` is independent of `enable_depth`
@@ -192,6 +197,7 @@ Setting *unite_imu_method* creates a new topic, *imu*, that replaces the default
 
 ### Available services:
 - enable : Start/Stop all streaming sensors. Usage example: `ros2 service call /camera/enable std_srvs/srv/SetBool "{data: False}"`
+- device_info : retrieve information about the device - serial_number, firmware_version etc. Type `ros2 interface show realsense2_camera_msgs/srv/DeviceInfo` for the full list. Call example: `ros2 service call /camera/device_info realsense2_camera_msgs/srv/DeviceInfo`
 
 ### Point Cloud
 Here is an example of how to start the camera node and make it publish the point cloud using the pointcloud option.
