@@ -2,21 +2,17 @@ sudo: required
 matrix:
     include:
         - dist: bionic
-          env: _ros_dist=dashing
         - dist: focal
-          env: _ros_dist=foxy
-        - dist: focal
-          env: _ros_dist=galactic
 
 env:
   # - git clone -v --progress https://github.com/doronhi/realsense.git  # This is Done automatically by TravisCI
 before_install:
-  - if [[ $(lsb_release -sc) == "bionic" ]]; then _python=python;
-    elif [[ $(lsb_release -sc) == "focal" ]]; then _python=python3; fi
+  - if [[ $(lsb_release -sc) == "bionic" ]]; then _python=python; _ros_dist=dashing;
+    elif [[ $(lsb_release -sc) == "focal" ]]; then _python=python3; _ros_dist=foxy; fi
   - echo _python:$_python
   - echo _ros_dist:$_ros_dist
 
-  - sudo apt-key adv --keyserver keys.gnupg.net --recv-key C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keys.gnupg.net:80 --recv-key C8B3A55A6F3EFCDE
+  - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C8B3A55A6F3EFCDE
   - sudo add-apt-repository "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main"
   - sudo apt-get update -qq
   - sudo apt-get install librealsense2-dkms --allow-unauthenticated -y
@@ -43,7 +39,8 @@ install:
   - cd ~/ros2_ws
   - sudo rosdep init
   - rosdep update
-  - rosdep install -i --from-path src --rosdistro $_ros_dist --skip-keys=librealsense2 -y
+  - rosdep install -i --from-path src --rosdistro $_ros_dist -y
+  - sudo apt purge ros-$_ros_dist-librealsense2 -y
   - colcon build
 
   - . install/local_setup.bash
@@ -56,7 +53,7 @@ script:
   - wget $bag_filename -P "records/"
 
     # install packages for tests:
-  - sudo apt-get install python3-pip
+  - sudo apt-get install python3-pip -y
   - pip3 install numpy --upgrade
   - pip3 install numpy-quaternion tqdm
   # Run test:
