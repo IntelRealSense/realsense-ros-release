@@ -1,0 +1,12 @@
+Source: ros-galactic-realsense2-camera
+Section: misc
+Priority: optional
+Maintainer: Doron Hirshberg <doron.hirshberg@intel.com>
+Build-Depends: debhelper (>= 9.0.0), libeigen3-dev, libopencv-dev, ros-galactic-ament-cmake, ros-galactic-ament-cmake-gtest, ros-galactic-ament-lint-auto, ros-galactic-ament-lint-common, ros-galactic-builtin-interfaces, ros-galactic-cv-bridge, ros-galactic-diagnostic-updater, ros-galactic-geometry-msgs, ros-galactic-image-transport, ros-galactic-librealsense2, ros-galactic-rclcpp, ros-galactic-rclcpp-components, ros-galactic-realsense2-camera-msgs, ros-galactic-ros-environment, ros-galactic-sensor-msgs, ros-galactic-std-msgs, ros-galactic-tf2, ros-galactic-tf2-ros, ros-galactic-ros-workspace
+Homepage: http://www.ros.org/wiki/RealSense
+Standards-Version: 3.9.2
+
+Package: ros-galactic-realsense2-camera
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libeigen3-dev, ros-galactic-builtin-interfaces, ros-galactic-cv-bridge, ros-galactic-diagnostic-updater, ros-galactic-geometry-msgs, ros-galactic-image-transport, ros-galactic-launch-ros, ros-galactic-librealsense2, ros-galactic-rclcpp, ros-galactic-rclcpp-components, ros-galactic-realsense2-camera-msgs, ros-galactic-sensor-msgs, ros-galactic-std-msgs, ros-galactic-tf2, ros-galactic-tf2-ros, ros-galactic-ros-workspace
+Description: RealSense Camera package allowing access to Intel T265 Tracking module and SR300 and D400 3D cameras
