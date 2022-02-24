@@ -4,10 +4,11 @@
 #pragma once
 
 #include <string>
+#include <rclcpp/rclcpp.hpp>
 
-#define REALSENSE_ROS_MAJOR_VERSION    3
-#define REALSENSE_ROS_MINOR_VERSION    2
-#define REALSENSE_ROS_PATCH_VERSION    3
+#define REALSENSE_ROS_MAJOR_VERSION    4
+#define REALSENSE_ROS_MINOR_VERSION    0
+#define REALSENSE_ROS_PATCH_VERSION    2
 
 #define STRINGIFY(arg) #arg
 #define VAR_ARG_STRING(arg) STRINGIFY(arg)
@@ -43,6 +44,7 @@
 #endif
 
 #define ROS_WARN_ONCE(msg) RCLCPP_WARN_ONCE(_logger, msg)
+#define ROS_WARN_COND(cond, ...) RCLCPP_WARN_EXPRESSION(_logger, cond, __VA_ARGS__)
 
 namespace realsense2_camera
 {
@@ -64,7 +66,7 @@ namespace realsense2_camera
     const uint16_t RS435i_RGB_PID   = 0x0B3A; // AWGC_MM
     const uint16_t RS465_PID        = 0x0b4d; // D465
     const uint16_t RS416_RGB_PID    = 0x0B52; // F416 RGB
-    const uint16_t RS405_PID        = 0x0b0c; // DS5U
+    const uint16_t RS405_PID        = 0x0B5B; // DS5U
     const uint16_t RS455_PID        = 0x0B5C; // D455
     const uint16_t RS_T265_PID      = 0x0b37; // 
     const uint16_t RS_L515_PID_PRE_PRQ = 0x0B3D; // 
@@ -72,26 +74,17 @@ namespace realsense2_camera
     const uint16_t RS_L535_PID      = 0x0b68;
     
 
-    const bool ALIGN_DEPTH             = false;
-    const bool POINTCLOUD              = false;
     const bool ALLOW_NO_TEXTURE_POINTS = false;
-    const bool SYNC_FRAMES             = false;
-    const bool ORDERED_POINTCLOUD      = false;
+    const bool ORDERED_PC     = false;
+    const bool SYNC_FRAMES    = false;
 
-    const bool PUBLISH_TF        = true;
+    const bool PUBLISH_TF     = true;
     const double TF_PUBLISH_RATE = 0; // Static transform
-    const double DIAGNOSTICS_PERIOD = 0; // Static transform
+    const double DIAGNOSTICS_PERIOD = 0.0;
 
-    const int IMAGE_WIDTH             = 640;
-    const int IMAGE_HEIGHT            = 480;
-    const double IMAGE_FPS            = 30;
-
-    const std::string IMAGE_QOS       = "SYSTEM_DEFAULT";
-    const std::string DEFAULT_QOS     = "DEFAULT";
-    const std::string HID_QOS         = "HID_DEFAULT";
-    const std::string EXTRINSICS_QOS  = "EXTRINSICS_DEFAULT";
-
-    const double IMU_FPS      = 0;
+    const std::string IMAGE_QOS    = "SYSTEM_DEFAULT";
+    const std::string DEFAULT_QOS  = "DEFAULT";
+    const std::string HID_QOS         = "SENSOR_DATA";
 
 
     const bool ENABLE_DEPTH   = true;
@@ -104,32 +97,26 @@ namespace realsense2_camera
     const bool PUBLISH_ODOM_TF = true;
 
 
-    const std::string DEFAULT_BASE_FRAME_ID            = "camera_link";
+    const std::string DEFAULT_BASE_FRAME_ID            = "link";
     const std::string DEFAULT_ODOM_FRAME_ID            = "odom_frame";
-    const std::string DEFAULT_DEPTH_FRAME_ID           = "camera_depth_frame";
-    const std::string DEFAULT_INFRA1_FRAME_ID          = "camera_infra1_frame";
-    const std::string DEFAULT_INFRA2_FRAME_ID          = "camera_infra2_frame";
-    const std::string DEFAULT_COLOR_FRAME_ID           = "camera_color_frame";
-    const std::string DEFAULT_FISHEYE_FRAME_ID         = "camera_fisheye_frame";
-    const std::string DEFAULT_IMU_FRAME_ID             = "camera_imu_frame";
-
-    const std::string DEFAULT_DEPTH_OPTICAL_FRAME_ID   = "camera_depth_optical_frame";
-    const std::string DEFAULT_INFRA1_OPTICAL_FRAME_ID  = "camera_infra1_optical_frame";
-    const std::string DEFAULT_INFRA2_OPTICAL_FRAME_ID  = "camera_infra2_optical_frame";
-    const std::string DEFAULT_COLOR_OPTICAL_FRAME_ID   = "camera_color_optical_frame";
-    const std::string DEFAULT_FISHEYE_OPTICAL_FRAME_ID = "camera_fisheye_optical_frame";
-    const std::string DEFAULT_ACCEL_OPTICAL_FRAME_ID   = "camera_accel_optical_frame";
-    const std::string DEFAULT_GYRO_OPTICAL_FRAME_ID    = "camera_gyro_optical_frame";
     const std::string DEFAULT_IMU_OPTICAL_FRAME_ID     = "camera_imu_optical_frame";
-
-    const std::string DEFAULT_ALIGNED_DEPTH_TO_COLOR_FRAME_ID = "camera_aligned_depth_to_color_frame";
-    const std::string DEFAULT_ALIGNED_DEPTH_TO_INFRA1_FRAME_ID = "camera_aligned_depth_to_infra1_frame";
-    const std::string DEFAULT_ALIGNED_DEPTH_TO_INFRA2_FRAME_ID = "camera_aligned_depth_to_infra2_frame";
-    const std::string DEFAULT_ALIGNED_DEPTH_TO_FISHEYE_FRAME_ID = "camera_aligned_depth_to_fisheye_frame";
 
     const std::string DEFAULT_UNITE_IMU_METHOD         = "";
     const std::string DEFAULT_FILTERS                  = "";
     const std::string DEFAULT_TOPIC_ODOM_IN            = "";
 
     const float ROS_DEPTH_SCALE = 0.001;
+
+    static const rmw_qos_profile_t rmw_qos_profile_latched =
+    {
+        RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+        1,
+        RMW_QOS_POLICY_RELIABILITY_RELIABLE,
+        RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL,
+        RMW_QOS_DEADLINE_DEFAULT,
+        RMW_QOS_LIFESPAN_DEFAULT,
+        RMW_QOS_POLICY_LIVELINESS_SYSTEM_DEFAULT,
+        RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
+        false
+    };
 }  // namespace realsense2_camera
