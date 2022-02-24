@@ -22,7 +22,6 @@
 #include <utility>
 #include <vector>
 #include <thread>
-#include "dynamic_params.h"
 
 namespace realsense2_camera
 {
