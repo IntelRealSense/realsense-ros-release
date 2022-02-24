@@ -1,1 +1,1 @@
-{"trim": "", "base": "9da705e", "trimbase": "", "parent": "debian/foxy/realsense2_camera", "previous": "282556d"}
+{"base": "bba9950", "parent": "debian/foxy/realsense2_camera", "previous": "94e9cd1", "trim": "", "trimbase": ""}
