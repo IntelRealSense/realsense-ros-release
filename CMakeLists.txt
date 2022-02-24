@@ -113,7 +113,14 @@ set(SOURCES
     src/realsense_node_factory.cpp
     src/base_realsense_node.cpp
     src/t265_realsense_node.cpp
+    src/parameters.cpp
+    src/rs_node_setup.cpp
+    src/ros_sensor.cpp
+    src/ros_utils.cpp
     src/dynamic_params.cpp
+    src/sensor_params.cpp
+    src/named_filter.cpp
+    src/profile_manager.cpp
   )
 
 if(NOT DEFINED ENV{ROS_DISTRO})
@@ -148,8 +155,15 @@ add_library(${PROJECT_NAME} SHARED
     include/constants.h
     include/realsense_node_factory.h
     include/base_realsense_node.h
+    include/t265_realsense_node.h
+    include/ros_sensor.h
+    include/ros_utils.h
     include/dynamic_params.h
+    include/sensor_params.h
+    include/named_filter.h
     include/ros_param_backend.h
+    include/profile_manager.h
+    
     ${SOURCES}
 )
 
@@ -196,10 +210,8 @@ install(
 )
 
 # Install launch files
-install(DIRECTORY
+install(DIRECTORY 
     launch
-    config
-    rviz
     DESTINATION share/${PROJECT_NAME}
     )
 
