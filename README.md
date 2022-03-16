@@ -4,58 +4,63 @@ These are packages for using Intel RealSense cameras (D400 and L500 series, SR30
 LibRealSense supported version: v2.50.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
 
 ## Installation Instructions
-This version supports ROS2 Dashing, Foxy and Rolling.
+This version supports ROS2 Dashing, Eloquent, Foxy, Galactic and Rolling.
 
    ### Step 1: Install the ROS2 distribution
-   - #### Install [ROS2 Dashing](https://index.ros.org/doc/ros2/Installation/dashing/Linux-Install-Debians/), on Ubuntu 18.04 or [ROS2 Foxy](https://index.ros.org/doc/ros2/Installation/foxy/Linux-Install-Debians/), on Ubuntu 20.04
-
-  ### Install realsense-ros fromsource:
-  * Currently this version is still not available as a debian package. Install from source:
-
-     > This option is demonstrated in the [.travis.yml](https://github.com/IntelRealSense/realsense-ros/blob/foxy/.travis.yml) file. It basically summerize the elaborate instructions in the following 2 steps:
-
-
-   ### Step 1: Install the latest Intel&reg; RealSense&trade; SDK 2.0
-
-    Install librealsense2 debian package:
-    * Jetson users - use the [Jetson Installation Guide](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation_jetson.md)
-    * Otherwise, install from [Linux Debian Installation Guide](https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_linux.md#installing-the-packages)
-      - In that case treat yourself as a developer. Make sure you follow the instructions to also install librealsense2-dev and librealsense2-dkms packages.
-
-   #### OR
-   - #### Build from sources by downloading the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.50.0) and follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
+ - #### Ubuntu 18.04 : 
+   - [ROS2 Dashing](https://docs.ros.org/en/dashing/Installation/Ubuntu-Install-Debians.html)
+   - [ROS2 Eloquent](https://docs.ros.org/en/eloquent/Installation/Linux-Install-Debians.html)
+ - #### Ubuntu 20.04: 
+   - [ROS2 Foxy](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html)
+   - [ROS2 Galactic](https://docs.ros.org/en/galactic/Installation/Ubuntu-Install-Debians.html)
+   - [ROS2 Rolling](https://docs.ros.org/en/rolling/Installation/Ubuntu-Install-Debians.html)
 
 
-   ### Step 3: Install Intel&reg; RealSense&trade; ROS2 wrapper from Sources
+### Step 2: Install the latest Intel&reg; RealSense&trade; SDK 2.0
+
+- #### Option 1: Install librealsense2 debian package
+   - Jetson users - use the [Jetson Installation Guide](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation_jetson.md)
+   - Otherwise, install from [Linux Debian Installation Guide](https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_linux.md#installing-the-packages)
+      - In this case treat yourself as a developer: make sure to follow the instructions to also install librealsense2-dev and librealsense2-dkms packages
+
+- #### Option 2: Build from source
+  - Download the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.50.0)
+  - Follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
+
+
+### Step 3: Install Intel&reg; RealSense&trade; ROS2 wrapper from sources
    - Create a ROS2 workspace
-   ```bash
-   mkdir -p ~/ros2_ws/src
-   cd ~/ros2_ws/src/
-   ```
+      ```bash
+      mkdir -p ~/ros2_ws/src
+      cd ~/ros2_ws/src/
+      ```
    - Clone the latest ROS2 Intel&reg; RealSense&trade;  wrapper from [here](https://github.com/IntelRealSense/realsense-ros.git) into '~/ros2_ws/src/'
-   ```bashrc
-   git clone https://github.com/IntelRealSense/realsense-ros.git -b ros2-beta
-   cd ~/ros2_ws
+      ```bashrc
+      git clone https://github.com/IntelRealSense/realsense-ros.git -b ros2-beta
+      cd ~/ros2_ws
+      ```
+### Step 4: Install dependencies
+   ```bash
+   sudo apt-get install python3-rosdep -y
+   sudo rosdep init # "sudo rosdep init --include-eol-distros" for Dashing
+   rosdep update
+   rosdep install -i --from-path src --rosdistro $ROS_DISTRO --skip-keys=librealsense2 -y
    ```
 
-  ### Step 4: Install dependencies:
+### Step 5: Build
    ```bash
-  sudo apt-get install python3-rosdep -y
-  sudo rosdep init # "sudo rosdep init --include-eol-distros" for Dashing
-  rosdep update
-  rosdep install -i --from-path src --rosdistro $ROS_DISTRO --skip-keys=librealsense2 -y
-  ```
+   colcon build
+   ```
 
-  ### Step 5: Build:
-  ```bash
-  colcon build
-  ```
+### Step 6: Terminal environment
+   ```bash
+   ROS_DISTRO=<YOUR_SYSTEM_ROS_DISTRO>  # set your ROS_DISTRO: galactic, foxy, eloquent, dashing
+   source /opt/ros/$ROS_DISTRO/setup.bash
+   cd ~/ros2_ws
+   . install/local_setup.bash
+   ```
 
-  ### Step 6: Source (on each new terminal):
-  ```bash
-  . install/local_setup.bash
-  ```
-
+&nbsp;
 
 ## Usage Instructions
 
@@ -63,7 +68,7 @@ This version supports ROS2 Dashing, Foxy and Rolling.
 To start the camera node in ROS:
 
 ```bash
-  ros2 launch realsense2_camera rs_launch.py
+ros2 launch realsense2_camera rs_launch.py
 ```
 or, with parameters, for example - temporal and spatial filters are enabled:
 ```bash
@@ -214,6 +219,7 @@ The `/diagnostics` topic includes information regarding the device temperatures 
 
 ### Available services:
 - device_info : retrieve information about the device - serial_number, firmware_version etc. Type `ros2 interface show realsense2_camera_msgs/srv/DeviceInfo` for the full list. Call example: `ros2 service call /camera/device_info realsense2_camera_msgs/srv/DeviceInfo`
+  - Note that for **ROS2 Dashing** the command is `ros2 srv show realsense2_camera_msgs/srv/DeviceInfo`
 ## Using T265 ##
 
 ### Start the camera node
@@ -228,7 +234,55 @@ ros2 launch realsense2_camera rs_d400_and_t265_launch.py enable_fisheye12:=true 
 ```
 - note: the parameters are called `enable_fisheye12` and `enable_fisheye22`. The node knows them as `enable_fisheye1` and `enable_fisheye2` but launch file runs 2 nodes and these parameters refer to the second one.
 
-## Still on the pipelie:
+
+
+## Efficient intra-process communication:
+
+Our ROS2 Wrapper node supports zero-copy communications if loaded in the same process as a subscriber node. This can reduce copy times on image topics (not point-cloud or others), especially with big frame resolutions and high FPS.
+
+You will need to launch a component container and launch our node as a component together with other component nodes. Further details on "Composing multiple nodes in a single process" can be found [here](https://docs.ros.org/en/rolling/Tutorials/Composition.html).
+
+Further details on efficient intra-process communication can be found [here](https://docs.ros.org/en/foxy/Tutorials/Intra-Process-Communication.html#efficient-intra-process-communication).
+
+### Example
+#### Manually loading multiple components into the same process
+* Start the component:
+  ```bash
+  ros2 run rclcpp_components component_container
+  ```
+
+* Add the wrapper:
+  ```bash
+  ros2 component load /ComponentManager realsense2_camera realsense2_camera::RealSenseNodeFactory -e use_intra_process_comms:=true
+  ```
+  Load other component nodes (consumers of the wrapper topics) in the same way.
+
+### Limitations
+
+* Node components are currently not supported on RCLPY
+* Transformations: `/static_tf` topic will be disabled (activate and read `/tf` topic and `/extrinsic/<stream>_to_<stream>` and use `-p tf_publish_rate:=1.0` on the command-line)
+* `image_transport` use for compressed image topic will be disabled as it does not support intra-process communication
+
+### Latency test tool and launch file
+
+For getting a sense of the latency reduction, a frame latency reporter tool is available via a launch file.
+The launch file loads the wrapper and a frame latency reporter tool component into a single container (so the same process).
+The tool prints out the frame latency (`now - frame.timestamp`) per frame.
+
+The tool is not built unless asked for. Turn on `BUILD_TOOLS` during build to have it available:
+```bash
+colcon build --cmake-args '-DBUILD_TOOLS=ON'
+```
+
+The launch file accepts a parameter, `intra_process_comms`, controlling whether zero-copy is turned on or not. Default is on:
+```bash
+ros2 launch realsense2_camera rs_intra_process_demo_launch.py intra_process_comms:=true
+```
+
+
+## Still in the pipeline:
+
+
 * Migrate infra_rgb option.
 
 ### Unit tests:
