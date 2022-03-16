@@ -1,0 +1,27 @@
+ros-galactic-realsense2-camera-msgs (4.0.3-6focal) focal; urgency=high
+
+
+
+ -- LibRealSense ROS Team <librs.ros@intel.com>  Tue, 15 Mar 2022 22:00:00 -0000
+
+ros-galactic-realsense2-camera-msgs (4.0.2-6focal) focal; urgency=high
+
+
+
+ -- Doron Hirshberg <doron.hirshberg@intel.com>  Wed, 23 Feb 2022 22:00:00 -0000
+
+ros-galactic-realsense2-camera-msgs (4.0.1-6focal) focal; urgency=high
+
+
+
+ -- Doron Hirshberg <doron.hirshberg@intel.com>  Mon, 31 Jan 2022 22:00:00 -0000
+
+ros-galactic-realsense2-camera-msgs (3.2.3-6focal) focal; urgency=high
+
+  * publish metadata
+  * Add service: device_info
+  * Contributors: doronhi
+
+ -- Doron Hirshberg <doron.hirshberg@intel.com>  Wed, 10 Nov 2021 22:00:00 -0000
+
+
