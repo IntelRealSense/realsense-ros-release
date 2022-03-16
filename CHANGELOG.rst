@@ -2,6 +2,15 @@
 Changelog for package realsense2_camera
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+4.0.3 (2022-03-16)
+------------------
+* Support intra-process zero-copy
+* Update README
+* Fix Galactic deprecated-declarations compilation warning
+* Fix Eloquent compilation error
+
+* Contributors: Eran, Nir-Az, SamerKhshiboun
+
 4.0.2 (2022-02-24)
 ------------------
 * version 4.4.0 changed to 4.0.0 in CHANGELOG
