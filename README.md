@@ -1,3 +1,29 @@
+## realsense2_camera (galactic) - 4.0.4-1
+
+The packages in the `realsense2_camera` repository were released into the `galactic` distro by running `/usr/bin/bloom-release --ros-distro galactic realsense2_camera --edit` on `Sun, 20 Mar 2022 15:38:36 -0000`
+
+These packages were released:
+- `realsense2_camera`
+- `realsense2_camera_msgs`
+- `realsense2_description`
+
+Version of package(s) in repository `realsense2_camera`:
+
+- upstream repository: https://github.com/IntelRealSense/realsense-ros.git
+- release repository: https://github.com/IntelRealSense/realsense-ros-release.git
+- rosdistro version: `4.0.3-1`
+- old version: `4.0.3-1`
+- new version: `4.0.4-1`
+
+Versions of tools used:
+
+- bloom version: `0.10.7`
+- catkin_pkg version: `0.4.24`
+- rosdep version: `0.21.0`
+- rosdistro version: `0.8.3`
+- vcstools version: `0.1.42`
+
+
 ## realsense2_camera (galactic) - 4.0.3-1
 
 The packages in the `realsense2_camera` repository were released into the `galactic` distro by running `/usr/bin/bloom-release --ros-distro galactic realsense2_camera --edit-track --debug` on `Thu, 17 Mar 2022 09:28:46 -0000`
