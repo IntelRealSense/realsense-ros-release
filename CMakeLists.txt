@@ -92,7 +92,6 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(realsense2_camera_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(std_srvs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
@@ -121,6 +120,7 @@ set(SOURCES
     src/sensor_params.cpp
     src/named_filter.cpp
     src/profile_manager.cpp
+    src/image_publisher.cpp
   )
 
 if(NOT DEFINED ENV{ROS_DISTRO})
@@ -150,8 +150,7 @@ else()
   message(FATAL_ERROR "Unsupported ROS Distribution: " "$ENV{ROS_DISTRO}")
 endif()
 
-
-add_library(${PROJECT_NAME} SHARED
+set(INCLUDES
     include/constants.h
     include/realsense_node_factory.h
     include/base_realsense_node.h
@@ -163,7 +162,21 @@ add_library(${PROJECT_NAME} SHARED
     include/named_filter.h
     include/ros_param_backend.h
     include/profile_manager.h
-    
+    include/image_publisher.h)
+
+
+if (BUILD_TOOLS)
+
+  include_directories(tools)
+  set(INCLUDES ${INCLUDES}
+    tools/frame_latency/frame_latency.h)
+
+  set(SOURCES ${SOURCES}
+    tools/frame_latency/frame_latency.cpp)
+endif()
+
+add_library(${PROJECT_NAME} SHARED
+    ${INCLUDES}
     ${SOURCES}
 )
 
@@ -178,7 +191,6 @@ set(dependencies
   rclcpp_components
   realsense2_camera_msgs
   std_msgs
-  std_srvs
   sensor_msgs
   nav_msgs
   tf2
@@ -195,6 +207,15 @@ rclcpp_components_register_node(${PROJECT_NAME}
   PLUGIN "realsense2_camera::RealSenseNodeFactory"
   EXECUTABLE realsense2_camera_node
 )
+
+if(BUILD_TOOLS)
+
+  rclcpp_components_register_node(${PROJECT_NAME}
+  PLUGIN "rs2_ros::tools::frame_latency::FrameLatencyNode"
+  EXECUTABLE realsense2_frame_latency_node
+  )
+
+endif()
 
 # Install binaries
 install(TARGETS ${PROJECT_NAME}
