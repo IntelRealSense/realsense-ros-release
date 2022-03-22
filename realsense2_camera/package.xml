@@ -2,16 +2,16 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>realsense2_camera</name>
-  <version>4.0.2</version>
-  <description>RealSense Camera package allowing access to Intel T265 Tracking module and SR300 and D400 3D cameras</description>
-  <maintainer email="doron.hirshberg@intel.com">Doron Hirshberg</maintainer>
-  <license>Apache 2.0</license>
+  <version>4.0.4</version>
+  <description>RealSense camera package allowing access to Intel T265 Tracking module and SR300 and D400 3D cameras</description>
+  <maintainer email="librs.ros@intel.com">LibRealSense ROS Team</maintainer>
+  <license>Apache License 2.0</license>
   
   <url type="website">http://www.ros.org/wiki/RealSense</url>
   <url type="bugtracker">https://github.com/intel-ros/realsense/issues</url>
 
-  <author email="sergey.dorodnicov@intel.com">Sergey Dorodnicov</author>
-  <author email="doron.hirshberg@intel.com">Doron Hirshberg</author>
+  <author email="librs.ros@intel.com">LibRealSense ROS Team</author>
+ 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>eigen</depend>
   <depend>builtin_interfaces</depend>
@@ -24,6 +24,7 @@
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>nav_msgs</depend>
   <depend>tf2</depend>
   <depend>tf2_ros</depend>
   <depend>diagnostic_updater</depend>
