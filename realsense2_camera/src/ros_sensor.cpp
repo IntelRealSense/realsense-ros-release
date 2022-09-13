@@ -1,3 +1,6 @@
+// License: Apache 2.0. See LICENSE file in root directory.
+// Copyright(c) 2022 Intel Corporation. All Rights Reserved.
+
 #include <ros_sensor.h>
 
 using namespace realsense2_camera;
@@ -30,7 +33,8 @@ RosSensor::RosSensor(rs2::sensor sensor,
     std::function<void()> hardware_reset_func, 
     std::shared_ptr<diagnostic_updater::Updater> diagnostics_updater,
     rclcpp::Logger logger,
-    bool force_image_default_qos):
+    bool force_image_default_qos,
+    bool is_rosbag_file):
     rs2::sensor(sensor),
     _logger(logger),
     _origin_frame_callback(frame_callback),
@@ -46,12 +50,19 @@ RosSensor::RosSensor(rs2::sensor sensor,
             auto stream_type = frame.get_profile().stream_type();
             auto stream_index = frame.get_profile().stream_index();
             stream_index_pair sip{stream_type, stream_index};
-            if (_frequency_diagnostics.find(sip) != _frequency_diagnostics.end())
-                _frequency_diagnostics.at(sip).Tick();
-
-            _origin_frame_callback(frame);
+            try
+            {
+                _origin_frame_callback(frame);
+                if (_frequency_diagnostics.find(sip) != _frequency_diagnostics.end())
+                    _frequency_diagnostics.at(sip).Tick();
+            }
+            catch(const std::exception& ex)
+            {
+                // don't tick the frequency diagnostics for this publisher
+                ROS_ERROR_STREAM("An error has occurred during frame callback: " << ex.what());
+            }
         };
-    setParameters();
+    setParameters(is_rosbag_file);
 }
 
 RosSensor::~RosSensor()
@@ -60,11 +71,16 @@ RosSensor::~RosSensor()
     stop();
 }
 
-void RosSensor::setParameters()
+void RosSensor::setParameters(bool is_rosbag_file)
 {
     std::string module_name = create_graph_resource_name(rs2_to_ros(get_info(RS2_CAMERA_INFO_NAME)));
     _params.registerDynamicOptions(*this, module_name);
-    UpdateSequenceIdCallback();
+
+    // for rosbag files, don't set hdr(sequence_id) / gain / exposure options
+    // since these options can be changed only in real devices
+    if(!is_rosbag_file)
+        UpdateSequenceIdCallback();
+    
     registerSensorParameters();
 }
 

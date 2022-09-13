@@ -1,3 +1,6 @@
+# License: Apache 2.0. See LICENSE file in root directory.
+# Copyright(c) 2022 Intel Corporation. All Rights Reserved.
+
 cmake_minimum_required(VERSION 3.5)
 project(realsense2_camera)
 
@@ -79,8 +82,8 @@ if(BUILD_WITH_OPENMP)
 endif()
 
 if(SET_USER_BREAK_AT_STARTUP)
-	message("GOT FLAG IN CmakeLists.txt")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBPDEBUG")
+    message("GOT FLAG IN CmakeLists.txt")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBPDEBUG")
 endif()
 
 
@@ -98,7 +101,7 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(diagnostic_updater REQUIRED)
 
-find_package(realsense2 2.50.0)
+find_package(realsense2 2.51.1)
 if(NOT realsense2_FOUND)
     message(FATAL_ERROR "\n\n Intel RealSense SDK 2.0 is missing, please install it from https://github.com/IntelRealSense/librealsense/releases\n\n")
 endif()
@@ -141,6 +144,10 @@ elseif("$ENV{ROS_DISTRO}" STREQUAL "foxy")
 elseif("$ENV{ROS_DISTRO}" STREQUAL "galactic")
   message(STATUS "Build for ROS2 Galactic")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DGALACTIC")
+  set(SOURCES "${SOURCES}" src/ros_param_backend_foxy.cpp)
+elseif("$ENV{ROS_DISTRO}" STREQUAL "humble")
+  message(STATUS "Build for ROS2 Humble")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHUMBLE")
   set(SOURCES "${SOURCES}" src/ros_param_backend_foxy.cpp)
 elseif("$ENV{ROS_DISTRO}" STREQUAL "rolling")
   message(STATUS "Build for ROS2 Rolling")
@@ -238,27 +245,7 @@ install(DIRECTORY
 
 # Test
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  find_package(OpenCV REQUIRED)
-
-  ament_lint_auto_find_test_dependencies()
-
-  set(REALSENSE_DEVICE_PLUGIN FALSE)
-  if(${REALSENSE_DEVICE_PLUGIN})
-    ament_add_gtest(test_api test/test_api.cpp)
-  endif()
-  if(TARGET test_api)
-    target_include_directories(test_api PUBLIC
-      ${${PROJECT_NAME}_INCLUDE_DIRS}
-    )
-  ament_target_dependencies(test_api
-    OpenCV
-    rclcpp
-    sensor_msgs
-    nav_msgs
-    tf2
-    tf2_ros)
-  endif()
+# This does nothing for now, note that ROS build farm build with BUILD_TESTING=1
 endif()
 
 # Ament exports
