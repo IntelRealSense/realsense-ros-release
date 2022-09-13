@@ -1,5 +1,6 @@
 // License: Apache 2.0. See LICENSE file in root directory.
-// Copyright(c) 2018 Intel Corporation. All Rights Reserved
+// Copyright(c) 2022 Intel Corporation. All Rights Reserved.
+
 #pragma once
 
 #include <librealsense2/rs.hpp>
@@ -56,14 +57,14 @@ namespace realsense2_camera
     const std::vector<stream_index_pair> HID_STREAMS = {GYRO, ACCEL, POSE};
     class image_publisher; // forward declaration
 
-	class PipelineSyncer : public rs2::asynchronous_syncer
-	{
-	public: 
-		void operator()(rs2::frame f) const
-		{
-			invoke(std::move(f));
-		}
-	};
+    class PipelineSyncer : public rs2::asynchronous_syncer
+    {
+    public: 
+        void operator()(rs2::frame f) const
+        {
+            invoke(std::move(f));
+        }
+    };
 
     class SyncedImuPublisher
     {
@@ -237,6 +238,7 @@ namespace realsense2_camera
         double _tf_publish_rate, _diagnostics_period;
         std::mutex _publish_tf_mutex;
         std::mutex _update_sensor_mutex;
+        std::mutex _profile_changes_mutex;
 
         std::shared_ptr<tf2_ros::StaticTransformBroadcaster> _static_tf_broadcaster;
         std::shared_ptr<tf2_ros::TransformBroadcaster> _dynamic_tf_broadcaster;
@@ -270,7 +272,8 @@ namespace realsense2_camera
         stream_index_pair _pointcloud_texture;
         PipelineSyncer _syncer;
         rs2::asynchronous_syncer _asyncer;
-        std::shared_ptr<NamedFilter> _align_depth_filter, _colorizer_filter;
+        std::shared_ptr<NamedFilter> _colorizer_filter;
+        std::shared_ptr<AlignDepthFilter> _align_depth_filter;
         std::shared_ptr<PointcloudFilter> _pc_filter;
         std::vector<std::shared_ptr<NamedFilter>> _filters;
         std::vector<rs2::sensor> _dev_sensors;
@@ -289,6 +292,7 @@ namespace realsense2_camera
         std::shared_ptr<std::thread> _monitoring_pc;   //pc = profile changes
         mutable std::condition_variable _cv_temp, _cv_mpc, _cv_tf;
         bool _is_profile_changed;
+        bool _is_align_depth_changed;
 
         std::shared_ptr<diagnostic_updater::Updater> _diagnostics_updater;
         rs2::stream_profile _base_profile;
