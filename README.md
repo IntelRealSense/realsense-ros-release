@@ -1,30 +1,52 @@
 # ROS2 Wrapper for Intel&reg; RealSense&trade; Devices
 These are packages for using Intel RealSense cameras (D400 and L500 series, SR300 camera and T265 Tracking Module) with ROS2.
 
-LibRealSense supported version: v2.50.0 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
-
-## Installation Instructions
 This version supports ROS2 Dashing, Eloquent, Foxy, Galactic and Rolling.
 
+LibRealSense supported version: v2.51.1 (see [realsense2_camera release notes](https://github.com/IntelRealSense/realsense-ros/releases))
+
+## Please notice: if you are moving from RealSense [ROS2 branch](https://github.com/IntelRealSense/realsense-ros/tree/ros2) to ROS2-beta:
+- **Changed Parameters**:
+    - **"stereo_module"**, **"l500_depth_sensor"** are replaced by **"depth_module"**
+    - For video streams: **\<module>.profile** replaces **\<stream>_width**, **\<stream>_height**, **\<stream>_fps**
+        - **ROS2 (Old)**:
+          - ros2 launch realsense2_camera rs_launch.py depth_width:=640 depth_height:=480 depth_fps:=30.0 infra1_width:=640 infra1_height:=480 infra1_fps:=30.0
+        - **ROS2-beta (New)**:
+          - ros2 launch realsense2_camera rs_launch.py depth_module.profile:=640x480x30
+    - Removed paramets **\<stream>_frame_id**, **\<stream>_optical_frame_id**. frame_ids are now defined by camera_name
+    - **"filters"** is removed. All filters (or post-processing blocks) are enabled/disabled using **"\<filter>.enable"**
+    - **"align_depth"** is now a regular processing block and as such the parameter for enabling it is replaced with **"align_depth.enable"**
+    - **"allow_no_texture_points"**, **"ordered_pc"** are now belong to the pointcloud filter and as such are replaced by **"pointcloud.allow_no_texture_points"**, **"pointcloud.ordered_pc"**
+    - **"pointcloud_texture_stream"**, **"pointcloud_texture_index"** belong now to the pointcloud filter and were renamed to match their librealsense' names: **"pointcloud.stream_filter"**, **"pointcloud.stream_index_filter"**
+- Allow enable/disable of sensors in runtime (parameters **\<stream>.enable**)
+- Allow enable/disable of filters in runtime (parameters **\<filter_name>.enable**)
+- **unite_imu_method** parameter is now changeable in runtime.
+- **enable_sync** parameter is now changeable in runtime.
+
+
+
+## Installation Instructions
+
    ### Step 1: Install the ROS2 distribution
- - #### Ubuntu 18.04 : 
-   - [ROS2 Dashing](https://docs.ros.org/en/dashing/Installation/Ubuntu-Install-Debians.html)
-   - [ROS2 Eloquent](https://docs.ros.org/en/eloquent/Installation/Linux-Install-Debians.html)
+ - #### Ubuntu 22.04:
+   - [ROS2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debians.html)
  - #### Ubuntu 20.04: 
    - [ROS2 Foxy](https://docs.ros.org/en/foxy/Installation/Ubuntu-Install-Debians.html)
    - [ROS2 Galactic](https://docs.ros.org/en/galactic/Installation/Ubuntu-Install-Debians.html)
-   - [ROS2 Rolling](https://docs.ros.org/en/rolling/Installation/Ubuntu-Install-Debians.html)
+ - #### Ubuntu 18.04 : 
+   - [ROS2 Dashing](https://docs.ros.org/en/dashing/Installation/Ubuntu-Install-Debians.html)
+   - [ROS2 Eloquent](https://docs.ros.org/en/eloquent/Installation/Linux-Install-Debians.html)
 
 
 ### Step 2: Install the latest Intel&reg; RealSense&trade; SDK 2.0
 
-- #### Option 1: Install librealsense2 debian package
+- #### Option 1: Install librealsense2 debian package (Not supported in Ubuntu 22.04 yet)
    - Jetson users - use the [Jetson Installation Guide](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation_jetson.md)
    - Otherwise, install from [Linux Debian Installation Guide](https://github.com/IntelRealSense/librealsense/blob/master/doc/distribution_linux.md#installing-the-packages)
       - In this case treat yourself as a developer: make sure to follow the instructions to also install librealsense2-dev and librealsense2-dkms packages
 
 - #### Option 2: Build from source
-  - Download the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.50.0)
+  - Download the latest [Intel&reg; RealSense&trade; SDK 2.0](https://github.com/IntelRealSense/librealsense/releases/tag/v2.51.1)
   - Follow the instructions under [Linux Installation](https://github.com/IntelRealSense/librealsense/blob/master/doc/installation.md)
 
 
@@ -54,7 +76,7 @@ This version supports ROS2 Dashing, Eloquent, Foxy, Galactic and Rolling.
 
 ### Step 6: Terminal environment
    ```bash
-   ROS_DISTRO=<YOUR_SYSTEM_ROS_DISTRO>  # set your ROS_DISTRO: galactic, foxy, eloquent, dashing
+   ROS_DISTRO=<YOUR_SYSTEM_ROS_DISTRO>  # set your ROS_DISTRO: humble, galactic, foxy, eloquent, dashing
    source /opt/ros/$ROS_DISTRO/setup.bash
    cd ~/ros2_ws
    . install/local_setup.bash
@@ -194,7 +216,10 @@ For setting a new value for a parameter use `ros2 param set <node> <parameter_na
 - **device_type**: will attach to a device whose name includes the given *device_type* regular expression pattern. Default, ignore device type. For example, device_type:=d435 will match d435 and d435i. device_type=d435(?!i) will match d435 but not d435i.
 - **reconnect_timeout**: When the driver cannot connect to the device try to reconnect after this timeout (in seconds).
 - **wait_for_device_timeout**: If the specified device is not found, will wait *wait_for_device_timeout* seconds before exits. Defualt, *wait_for_device_timeout < 0*, will wait indefinitely.
-- **rosbag_filename**: Will publish topics from rosbag file.
+- **rosbag_filename**: Publish topics from rosbag file. There are two ways for loading rosbag file:
+   * Command line - ```ros2 run realsense2_camera realsense2_camera_node -p rosbag_filename:="/full/path/to/rosbag.bag"```
+   * Launch file - set ```rosbag_filename``` parameter with rosbag full path (see ```realsense2_camera/launch/rs_launch.py``` as reference) 
+
 - **initial_reset**: On occasions the device was not closed properly and due to firmware issues needs to reset. If set to true, the device will reset prior to usage.
 
 - ***<stream_name>*_frame_id**, ***<stream_name>*_optical_frame_id**, **aligned_depth_to_*<stream_name>*_frame_id**: Specify the different frame_id for the different frames. Especially important when using multiple cameras.
@@ -260,8 +285,15 @@ Further details on efficient intra-process communication can be found [here](htt
 ### Limitations
 
 * Node components are currently not supported on RCLPY
-* Transformations: `/static_tf` topic will be disabled (activate and read `/tf` topic and `/extrinsic/<stream>_to_<stream>` and use `-p tf_publish_rate:=1.0` on the command-line)
-* `image_transport` use for compressed image topic will be disabled as it does not support intra-process communication
+* Transformations: `/static_tf` topic will be disabled
+  * To get the transformations published:
+    * Set `tf_publish_rate` to `1.0` in the launch file (or on the command-line, using `-p tf_publish_rate:=1.0`)
+    * Activate and read `/tf` and `/extrinsic/<stream>_to_<stream>` topics
+      * To echo the `/extrinsic/<stream>_to_<stream>` topic you will need to change the default CLI QoS to match the new QoS that the `intra-process` flow uses. E.g.:
+        ```bash
+        ros2 topic echo /extrinsics/depth_to_color --qos-durability=volatile --qos-reliability=reliable
+        ```
+* Compressed images using `image_transport` will be disabled as this isn't supported with intra-process communication
 
 ### Latency test tool and launch file
 
@@ -298,7 +330,7 @@ python3 src/realsense-ros/realsense2_camera/scripts/rs2_test.py --all
 ```
 
 ## License
-Copyright 2021 Intel Corporation
+Copyright 2022 Intel Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this project except in compliance with the License.
