@@ -1,16 +1,28 @@
-// License: Apache 2.0. See LICENSE file in root directory.
-// Copyright(c) 2022 Intel Corporation. All Rights Reserved
+// Copyright 2023 Intel Corporation. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include "../include/realsense_node_factory.h"
 #include "../include/base_realsense_node.h"
-#include "../include/t265_realsense_node.h"
 #include <iostream>
 #include <map>
 #include <mutex>
 #include <condition_variable>
 #include <signal.h>
 #include <thread>
+#ifndef _WIN32
 #include <sys/time.h>
+#endif
 #include <regex>
 
 using namespace realsense2_camera;
@@ -173,12 +185,6 @@ void RealSenseNodeFactory::getDevice(rs2::device_list list)
         }
     }
 
-    bool remove_tm2_handle(_device && RS_T265_PID != std::stoi(_device.get_info(RS2_CAMERA_INFO_PRODUCT_ID), 0, 16));
-    if (remove_tm2_handle)
-    {
-        _ctx.unload_tracking_module();
-    }
-
     if (_device && _initial_reset)
     {
         _initial_reset = false;
@@ -268,19 +274,15 @@ void RealSenseNodeFactory::init()
         _reconnect_timeout = declare_parameter("reconnect_timeout", 6.0);
 
         // A ROS2 hack: until a better way is found to avoid auto convertion of strings containing only digits to integers:
-        if (_serial_no.front() == '_') _serial_no = _serial_no.substr(1);    // remove '_' prefix
+        if (!_serial_no.empty() && _serial_no.front() == '_') _serial_no = _serial_no.substr(1);    // remove '_' prefix
 
         std::string rosbag_filename(declare_parameter("rosbag_filename", rclcpp::ParameterValue("")).get<rclcpp::PARAMETER_STRING>());
         if (!rosbag_filename.empty())
         {
             {
                 ROS_INFO_STREAM("publish topics from rosbag file: " << rosbag_filename.c_str());
-                auto pipe = std::make_shared<rs2::pipeline>();
-                rs2::config cfg;
-                cfg.enable_device_from_file(rosbag_filename.c_str(), false);
-                cfg.enable_all_streams();
-                pipe->start(cfg); //File will be opened in read mode at this point
-                _device = pipe->get_active_profile().get_device();
+                rs2::context ctx;
+                _device = ctx.load_device(rosbag_filename.c_str());
                 _serial_no = _device.get_info(RS2_CAMERA_INFO_SERIAL_NUMBER);
             }
             if (_device)
@@ -366,20 +368,19 @@ void RealSenseNodeFactory::startDevice()
         case RS420_PID:
         case RS420_MM_PID:
         case RS430_PID:
+        case RS430i_PID:
         case RS430_MM_PID:
         case RS430_MM_RGB_PID:
         case RS435_RGB_PID:
         case RS435i_RGB_PID:
         case RS455_PID:
+        case RS457_PID:
         case RS465_PID:
         case RS_USB2_PID:
         case RS_L515_PID_PRE_PRQ:
         case RS_L515_PID:
         case RS_L535_PID:
             _realSenseNode = std::unique_ptr<BaseRealSenseNode>(new BaseRealSenseNode(*this, _device, _parameters, this->get_node_options().use_intra_process_comms()));
-            break;
-        case RS_T265_PID:
-            _realSenseNode = std::unique_ptr<T265RealsenseNode>(new T265RealsenseNode(*this, _device, _parameters, this->get_node_options().use_intra_process_comms()));
             break;
         default:
             ROS_FATAL_STREAM("Unsupported device!" << " Product ID: 0x" << pid_str);
