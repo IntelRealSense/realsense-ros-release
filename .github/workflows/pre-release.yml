@@ -13,13 +13,13 @@ name: pre-release
 
 # Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the ros2-beta branch
+  # Triggers the workflow on push or pull request events but only for the ros2-development branch
   push:
     branches:
-      - ros2-beta
+      - ros2-development
   pull_request:
     branches:
-      - ros2-beta
+      - ros2-development
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -31,12 +31,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ros_distro: [galactic, foxy]
+        ros_distro: [iron, humble]
         include:
-        - ros_distro: 'galactic'
-          os: ubuntu-20.04
-        - ros_distro: 'foxy'
-          os: ubuntu-20.04
+        - ros_distro: 'iron'
+          os: ubuntu-22.04
+        - ros_distro: 'humble'
+          os: ubuntu-22.04
           
     env:
       ROS_DISTRO: ${{ matrix.ros_distro }}
