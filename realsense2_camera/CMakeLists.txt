@@ -1,5 +1,16 @@
-# License: Apache 2.0. See LICENSE file in root directory.
-# Copyright(c) 2022 Intel Corporation. All Rights Reserved.
+# Copyright 2023 Intel Corporation. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 cmake_minimum_required(VERSION 3.5)
 project(realsense2_camera)
@@ -59,6 +70,10 @@ if(UNIX OR APPLE)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pie")
 endif()
 
+if(WIN32)
+  add_definitions(-D_USE_MATH_DEFINES)
+endif()
+
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
@@ -101,7 +116,7 @@ find_package(tf2_ros REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(diagnostic_updater REQUIRED)
 
-find_package(realsense2 2.51.1)
+find_package(realsense2 2.54.1)
 if(NOT realsense2_FOUND)
     message(FATAL_ERROR "\n\n Intel RealSense SDK 2.0 is missing, please install it from https://github.com/IntelRealSense/librealsense/releases\n\n")
 endif()
@@ -114,7 +129,6 @@ set(node_plugins "")
 set(SOURCES
     src/realsense_node_factory.cpp
     src/base_realsense_node.cpp
-    src/t265_realsense_node.cpp
     src/parameters.cpp
     src/rs_node_setup.cpp
     src/ros_sensor.cpp
@@ -124,6 +138,7 @@ set(SOURCES
     src/named_filter.cpp
     src/profile_manager.cpp
     src/image_publisher.cpp
+    src/tfs.cpp
   )
 
 if(NOT DEFINED ENV{ROS_DISTRO})
@@ -149,19 +164,33 @@ elseif("$ENV{ROS_DISTRO}" STREQUAL "humble")
   message(STATUS "Build for ROS2 Humble")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHUMBLE")
   set(SOURCES "${SOURCES}" src/ros_param_backend_foxy.cpp)
+elseif("$ENV{ROS_DISTRO}" STREQUAL "iron")
+  message(STATUS "Build for ROS2 Iron")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIRON")
+  set(SOURCES "${SOURCES}" src/ros_param_backend_foxy.cpp)
 elseif("$ENV{ROS_DISTRO}" STREQUAL "rolling")
   message(STATUS "Build for ROS2 Rolling")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DROLLING")
-  set(SOURCES "${SOURCES}" src/ros_param_backend_foxy.cpp)
+  set(SOURCES "${SOURCES}" src/ros_param_backend_rolling.cpp)
 else()
   message(FATAL_ERROR "Unsupported ROS Distribution: " "$ENV{ROS_DISTRO}")
+endif()
+
+# The header 'cv_bridge/cv_bridge.hpp' was added in version 3.3.0. For older
+# cv_bridge versions, we have to use the header 'cv_bridge/cv_bridge.h'.
+if(${cv_bridge_VERSION} VERSION_GREATER_EQUAL "3.3.0")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCV_BRDIGE_HAS_HPP")
+endif()
+
+# 'OnSetParametersCallbackType' is only defined for rclcpp 17 and onward.
+if(${rclcpp_VERSION} VERSION_GREATER_EQUAL "17.0")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DRCLCPP_HAS_OnSetParametersCallbackType")
 endif()
 
 set(INCLUDES
     include/constants.h
     include/realsense_node_factory.h
     include/base_realsense_node.h
-    include/t265_realsense_node.h
     include/ros_sensor.h
     include/ros_utils.h
     include/dynamic_params.h
