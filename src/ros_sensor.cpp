@@ -1,5 +1,16 @@
-// License: Apache 2.0. See LICENSE file in root directory.
-// Copyright(c) 2022 Intel Corporation. All Rights Reserved.
+// Copyright 2023 Intel Corporation. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 #include <ros_sensor.h>
 
@@ -233,7 +244,7 @@ void RosSensor::stop()
 {
     if (get_active_streams().size() == 0)
         return;
-    ROS_INFO_STREAM("Stop Sensor: " << get_info(RS2_CAMERA_INFO_NAME));
+    ROS_INFO_STREAM("Stop Sensor: " << rs2_to_ros(get_info(RS2_CAMERA_INFO_NAME)));
     _frequency_diagnostics.clear();
 
     try
@@ -326,13 +337,13 @@ bool RosSensor::getUpdatedProfiles(std::vector<stream_profile>& wanted_profiles)
         profile_manager->addWantedProfiles(wanted_profiles);        
     }
 
-    ROS_DEBUG_STREAM(get_info(RS2_CAMERA_INFO_NAME) << ":" << "active_profiles.size() = " << active_profiles.size());
+    ROS_DEBUG_STREAM(rs2_to_ros(get_info(RS2_CAMERA_INFO_NAME)) << ":" << "active_profiles.size() = " << active_profiles.size());
     for (auto& profile : active_profiles)
     {
         ROS_DEBUG_STREAM("Sensor profile: " << ProfilesManager::profile_string(profile));
     }
 
-    ROS_DEBUG_STREAM(get_info(RS2_CAMERA_INFO_NAME) << ":" << "wanted_profiles");
+    ROS_DEBUG_STREAM(rs2_to_ros(get_info(RS2_CAMERA_INFO_NAME)) << ":" << "wanted_profiles");
     for (auto& profile : wanted_profiles)
     {
         ROS_DEBUG_STREAM("Sensor profile: " << ProfilesManager::profile_string(profile));
