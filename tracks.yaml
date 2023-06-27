@@ -118,7 +118,7 @@ tracks:
       :{release_inc} --os-name fedora
     - git-bloom-generate -y rosrpm --prefix release/:{ros_distro} :{ros_distro} -i
       :{release_inc} --os-name rhel
-    devel_branch: ros2-beta
+    devel_branch: ros2-development
     last_version: 4.51.1
     name: upstream
     patches: null
@@ -128,7 +128,7 @@ tracks:
     ros_distro: humble
     vcs_type: git
     vcs_uri: https://github.com/IntelRealSense/realsense-ros.git
-    version: 4.51.1
+    version: 4.54.1
   kinetic:
     actions:
     - bloom-export-upstream :{vcs_local_uri} :{vcs_type} --tag :{release_tag} --display-uri
