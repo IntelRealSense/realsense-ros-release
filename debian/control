@@ -1,0 +1,12 @@
+Source: ros-iron-realsense2-camera-msgs
+Section: misc
+Priority: optional
+Maintainer: LibRealSense ROS Team <librs.ros@intel.com>
+Build-Depends: debhelper (>= 9.0.0), ros-iron-ament-cmake, ros-iron-ament-lint-common <!nocheck>, ros-iron-builtin-interfaces, ros-iron-rosidl-default-generators, ros-iron-std-msgs, ros-iron-ros-workspace, ros-iron-rosidl-typesupport-fastrtps-c, ros-iron-rosidl-typesupport-fastrtps-cpp
+Homepage: http://www.ros.org/wiki/RealSense
+Standards-Version: 3.9.2
+
+Package: ros-iron-realsense2-camera-msgs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-iron-builtin-interfaces, ros-iron-rosidl-default-runtime, ros-iron-std-msgs, ros-iron-ros-workspace
+Description: RealSense camera_msgs package containing realsense camera messages definitions
