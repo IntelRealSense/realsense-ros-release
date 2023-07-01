@@ -1,0 +1,12 @@
+Source: ros-iron-realsense2-camera
+Section: misc
+Priority: optional
+Maintainer: LibRealSense ROS Team <librs.ros@intel.com>
+Build-Depends: debhelper (>= 9.0.0), libeigen3-dev, ros-iron-ament-cmake, ros-iron-builtin-interfaces, ros-iron-cv-bridge, ros-iron-diagnostic-updater, ros-iron-geometry-msgs, ros-iron-image-transport, ros-iron-librealsense2, ros-iron-nav-msgs, ros-iron-rclcpp, ros-iron-rclcpp-components, ros-iron-realsense2-camera-msgs, ros-iron-ros-environment, ros-iron-sensor-msgs, ros-iron-std-msgs, ros-iron-tf2, ros-iron-tf2-ros, ros-iron-ros-workspace
+Homepage: http://www.ros.org/wiki/RealSense
+Standards-Version: 3.9.2
+
+Package: ros-iron-realsense2-camera
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libeigen3-dev, ros-iron-builtin-interfaces, ros-iron-cv-bridge, ros-iron-diagnostic-updater, ros-iron-geometry-msgs, ros-iron-image-transport, ros-iron-launch-ros, ros-iron-librealsense2, ros-iron-nav-msgs, ros-iron-rclcpp, ros-iron-rclcpp-components, ros-iron-realsense2-camera-msgs, ros-iron-sensor-msgs, ros-iron-std-msgs, ros-iron-tf2, ros-iron-tf2-ros, ros-iron-ros-workspace
+Description: RealSense camera package allowing access to Intel SR300 and D400 3D cameras
