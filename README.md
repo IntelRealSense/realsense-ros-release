@@ -1,3 +1,29 @@
+## realsense2_camera (iron) - 4.54.1-2
+
+The packages in the `realsense2_camera` repository were released into the `iron` distro by running `/usr/bin/bloom-release --ros-distro iron --track iron realsense2_camera --edit -d` on `Sat, 01 Jul 2023 23:11:36 -0000`
+
+These packages were released:
+- `realsense2_camera`
+- `realsense2_camera_msgs`
+- `realsense2_description`
+
+Version of package(s) in repository `realsense2_camera`:
+
+- upstream repository: https://github.com/IntelRealSense/realsense-ros.git
+- release repository: https://github.com/IntelRealSense/realsense-ros-release.git
+- rosdistro version: `4.54.1-1`
+- old version: `4.54.1-1`
+- new version: `4.54.1-2`
+
+Versions of tools used:
+
+- bloom version: `0.11.2`
+- catkin_pkg version: `0.5.2`
+- rosdep version: `0.22.2`
+- rosdistro version: `0.9.0`
+- vcstools version: `0.1.42`
+
+
 ## realsense2_camera (rolling) - 4.54.1-1
 
 The packages in the `realsense2_camera` repository were released into the `rolling` distro by running `/usr/bin/bloom-release --ros-distro rolling --track rolling realsense2_camera --edit -d --new-track` on `Thu, 29 Jun 2023 07:22:31 -0000`
