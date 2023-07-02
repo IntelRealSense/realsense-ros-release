@@ -1,0 +1,50 @@
+ros-humble-realsense2-camera-msgs (4.54.1-2bullseye) bullseye; urgency=high
+
+  * add info about extrinsic msg format in Extrinsics.msg and README.md
+  * Expose USB port in DeviceInfo service
+  * Fix Apache License Header and Intel Copyrights
+  * apply copyrights and license on project
+  * Contributors: Arun Prasad, Nir Azkiel, SamerKhshiboun, Stephan Wirth
+
+ -- LibRealSense ROS Team <librs.ros@intel.com>  Mon, 26 Jun 2023 21:00:00 -0000
+
+ros-humble-realsense2-camera-msgs (4.51.1-2bullseye) bullseye; urgency=high
+
+  * Add copyright and license to all ROS2-beta source files
+  * Contributors: SamerKhshiboun
+
+ -- LibRealSense ROS Team <librs.ros@intel.com>  Mon, 12 Sep 2022 21:00:00 -0000
+
+ros-humble-realsense2-camera-msgs (4.0.4-2bullseye) bullseye; urgency=high
+
+
+
+ -- LibRealSense ROS Team <librs.ros@intel.com>  Sat, 19 Mar 2022 22:00:00 -0000
+
+ros-humble-realsense2-camera-msgs (4.0.3-2bullseye) bullseye; urgency=high
+
+
+
+ -- LibRealSense ROS Team <librs.ros@intel.com>  Tue, 15 Mar 2022 22:00:00 -0000
+
+ros-humble-realsense2-camera-msgs (4.0.2-2bullseye) bullseye; urgency=high
+
+
+
+ -- LibRealSense ROS Team <librs.ros@intel.com>  Wed, 23 Feb 2022 22:00:00 -0000
+
+ros-humble-realsense2-camera-msgs (4.0.1-2bullseye) bullseye; urgency=high
+
+
+
+ -- LibRealSense ROS Team <librs.ros@intel.com>  Mon, 31 Jan 2022 22:00:00 -0000
+
+ros-humble-realsense2-camera-msgs (3.2.3-2bullseye) bullseye; urgency=high
+
+  * publish metadata
+  * Add service: device_info
+  * Contributors: doronhi
+
+ -- LibRealSense ROS Team <librs.ros@intel.com>  Wed, 10 Nov 2021 22:00:00 -0000
+
+
