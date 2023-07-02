@@ -1,0 +1,12 @@
+Source: ros-humble-realsense2-description
+Section: misc
+Priority: optional
+Maintainer: LibRealSense ROS Team <librs.ros@intel.com>
+Build-Depends: debhelper (>= 9.0.0), ros-humble-ament-cmake, ros-humble-ament-lint-auto <!nocheck>, ros-humble-ament-lint-common <!nocheck>, ros-humble-rclcpp, ros-humble-rclcpp-components, ros-humble-realsense2-camera-msgs, ros-humble-ros-workspace
+Homepage: http://www.ros.org/wiki/RealSense
+Standards-Version: 3.9.2
+
+Package: ros-humble-realsense2-description
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-humble-launch-ros, ros-humble-rclcpp, ros-humble-rclcpp-components, ros-humble-realsense2-camera-msgs, ros-humble-xacro, ros-humble-ros-workspace
+Description: RealSense description package for Intel 3D D400 cameras
