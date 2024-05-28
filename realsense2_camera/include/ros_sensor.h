@@ -95,7 +95,7 @@ namespace realsense2_camera
             template<class T> 
             bool is() const
             {
-                return (dynamic_cast<const T*> (&(*this)));
+                return rs2::sensor::is<T>();
             }
 
         private:
@@ -105,6 +105,7 @@ namespace realsense2_camera
             void set_sensor_auto_exposure_roi();
             void registerAutoExposureROIOptions();
             void UpdateSequenceIdCallback();
+            template<class T> 
             void set_sensor_parameter_to_ros(rs2_option option);
 
         private:
