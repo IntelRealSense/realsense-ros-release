@@ -12,21 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ros_param_backend.h"
+#include <gtest/gtest.h>
 
-namespace realsense2_camera
+TEST(realsense2_camera, test1)
 {
-    void ParametersBackend::add_on_set_parameters_callback(ros2_param_callback_type callback)
-    {
-        _ros_callback = _node.add_on_set_parameters_callback(callback);
-    }
-
-    ParametersBackend::~ParametersBackend()
-    {
-        if (_ros_callback)
-        {
-            _node.remove_on_set_parameters_callback((rclcpp::node_interfaces::OnSetParametersCallbackHandle*)(_ros_callback.get()));
-            _ros_callback.reset();
-        }
-    }
+    std::cout << "Running test1...";
+    ASSERT_EQ(4, 2 + 2);
 }
+TEST(realsense2_camera, test2)
+{
+    std::cout << "Running test2...";
+    ASSERT_EQ(4, 2 + 2);
+}
+
+int main(int argc, char** argv)
+{
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
+
