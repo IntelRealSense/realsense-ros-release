@@ -31,15 +31,9 @@ void BaseRealSenseNode::restartStaticTransformBroadcaster()
     rclcpp::PublisherOptionsWithAllocator<std::allocator<void>> options;
     options.use_intra_process_comm = rclcpp::IntraProcessSetting::Disable;
 
-    #ifndef DASHING
     _static_tf_broadcaster = std::make_shared<tf2_ros::StaticTransformBroadcaster>(_node, 
                                                                                     tf2_ros::StaticBroadcasterQoS(), 
                                                                                     std::move(options));
-    #else
-    _static_tf_broadcaster = std::make_shared<tf2_ros::StaticTransformBroadcaster>(_node, 
-                                                                                    rclcpp::QoS(100), 
-                                                                                    std::move(options));
-    #endif
 }
 
 void BaseRealSenseNode::append_static_tf_msg(const rclcpp::Time& t,
@@ -53,7 +47,7 @@ void BaseRealSenseNode::append_static_tf_msg(const rclcpp::Time& t,
     msg.header.frame_id = from;
     msg.child_frame_id = to;
 
-    // Convert x,y,z (taken from camera extrinsics)
+    // Convert translation vector (x,y,z) (taken from camera extrinsics)
     // from optical cooridnates to ros coordinates
     msg.transform.translation.x = trans.z;
     msg.transform.translation.y = -trans.x;
@@ -124,11 +118,17 @@ void BaseRealSenseNode::calcAndAppendTransformMsgs(const rs2::stream_profile& pr
 {
     // Transform base to stream
     stream_index_pair sip(profile.stream_type(), profile.stream_index());
+
+    // rotation quaternion from ROS CS to Optical CS
     tf2::Quaternion quaternion_optical;
-    quaternion_optical.setRPY(-M_PI / 2, 0.0, -M_PI / 2);
-    float3 zero_trans{0, 0, 0};
+    quaternion_optical.setRPY(-M_PI / 2, 0, -M_PI/2);  // R,P,Y rotations over the original axes
+
+    // zero rotation quaternion, used for IMU
     tf2::Quaternion zero_rot_quaternions;
     zero_rot_quaternions.setRPY(0, 0, 0);
+
+    // zero translation, used for moving from ROS frame to its correspending Optical frame
+    float3 zero_trans{0, 0, 0};
 
     rclcpp::Time transform_ts_ = _node.now();
 
@@ -166,14 +166,28 @@ void BaseRealSenseNode::calcAndAppendTransformMsgs(const rs2::stream_profile& pr
     // publish normal extrinsics e.g. /camera/extrinsics/depth_to_color
     publishExtrinsicsTopic(sip, normal_ex);
 
-    // publish static TF
+    // Representing Rotations with Quaternions
+    // see https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation#Using_quaternions_as_rotations for reference
+
+    // Q defines a quaternion rotation from <base profile CS> to <current profile CS>
+    // for example, rotation from depth to infra2
     auto Q = rotationMatrixToQuaternion(tf_ex.rotation);
-    Q = quaternion_optical * Q * quaternion_optical.inverse();
+
     float3 trans{tf_ex.translation[0], tf_ex.translation[1], tf_ex.translation[2]};
 
-    append_static_tf_msg(transform_ts_, trans, Q, _base_frame_id, FRAME_ID(sip));
+    // Rotation order is important (start from left to right):
+    // 1. quaternion_optical.inverse() [ROS -> Optical]
+    // 2. Q [Optical -> Optical] (usually no rotation, but might be very small rotations between sensors, like from Depth to Color)
+    // 3. quaternion_optical [Optical -> ROS]
+    // We do all these products since we want to finish in ROS CS, while Q is a rotation from optical to optical,
+    // and cant be used directly in ROS TF without this combination 
+    Q = quaternion_optical * Q * quaternion_optical.inverse();
 
-    // Transform stream frame to stream optical frame and publish it
+    // The translation vector is in the Optical CS, and we convert it to ROS CS inside append_static_tf_msg
+    append_static_tf_msg(transform_ts_, trans, Q, _base_frame_id, FRAME_ID(sip));
+    
+     // Transform stream frame from ROS CS to optical CS and publish it
+    // We are using zero translation vector here, since no translation between frame and optical_frame, but only rotation
     append_static_tf_msg(transform_ts_, zero_trans, quaternion_optical, FRAME_ID(sip), OPTICAL_FRAME_ID(sip));
 
     if (profile.is<rs2::video_stream_profile>() &&
@@ -290,90 +304,3 @@ void BaseRealSenseNode::startDynamicTf()
     }
 }
 
-void BaseRealSenseNode::pose_callback(rs2::frame frame)
-{
-    double frame_time = frame.get_timestamp();
-    bool placeholder_false(false);
-    if (_is_initialized_time_base.compare_exchange_strong(placeholder_false, true) )
-    {
-        _is_initialized_time_base = setBaseTime(frame_time, frame.get_frame_timestamp_domain());
-    }
-
-    ROS_DEBUG("Frame arrived: stream: %s ; index: %d ; Timestamp Domain: %s",
-                rs2_stream_to_string(frame.get_profile().stream_type()),
-                frame.get_profile().stream_index(),
-                rs2_timestamp_domain_to_string(frame.get_frame_timestamp_domain()));
-    rs2_pose pose = frame.as<rs2::pose_frame>().get_pose_data();
-    rclcpp::Time t(frameSystemTimeSec(frame));
-
-    geometry_msgs::msg::PoseStamped pose_msg;
-    pose_msg.pose.position.x = -pose.translation.z;
-    pose_msg.pose.position.y = -pose.translation.x;
-    pose_msg.pose.position.z = pose.translation.y;
-    pose_msg.pose.orientation.x = -pose.rotation.z;
-    pose_msg.pose.orientation.y = -pose.rotation.x;
-    pose_msg.pose.orientation.z = pose.rotation.y;
-    pose_msg.pose.orientation.w = pose.rotation.w;
-
-    static tf2_ros::TransformBroadcaster br(_node);
-    geometry_msgs::msg::TransformStamped msg;
-    msg.header.stamp = t;
-    msg.header.frame_id = DEFAULT_ODOM_FRAME_ID;
-    msg.child_frame_id = FRAME_ID(POSE);
-    msg.transform.translation.x = pose_msg.pose.position.x;
-    msg.transform.translation.y = pose_msg.pose.position.y;
-    msg.transform.translation.z = pose_msg.pose.position.z;
-    msg.transform.rotation.x = pose_msg.pose.orientation.x;
-    msg.transform.rotation.y = pose_msg.pose.orientation.y;
-    msg.transform.rotation.z = pose_msg.pose.orientation.z;
-    msg.transform.rotation.w = pose_msg.pose.orientation.w;
-
-    if (_publish_odom_tf) br.sendTransform(msg);
-
-    if (0 != _odom_publisher->get_subscription_count())
-    {
-        double cov_pose(_linear_accel_cov * pow(10, 3-(int)pose.tracker_confidence));
-        double cov_twist(_angular_velocity_cov * pow(10, 1-(int)pose.tracker_confidence));
-
-        geometry_msgs::msg::Vector3Stamped v_msg;
-        tf2::Vector3 tfv(-pose.velocity.z, -pose.velocity.x, pose.velocity.y);
-        tf2::Quaternion q(-msg.transform.rotation.x,
-                          -msg.transform.rotation.y,
-                          -msg.transform.rotation.z,
-                           msg.transform.rotation.w);
-        tfv=tf2::quatRotate(q,tfv);
-        v_msg.vector.x = tfv.x();
-        v_msg.vector.y = tfv.y();
-        v_msg.vector.z = tfv.z();
-    
-        tfv = tf2::Vector3(-pose.angular_velocity.z, -pose.angular_velocity.x, pose.angular_velocity.y);
-        tfv=tf2::quatRotate(q,tfv);
-        geometry_msgs::msg::Vector3Stamped om_msg;
-        om_msg.vector.x = tfv.x();
-        om_msg.vector.y = tfv.y();
-        om_msg.vector.z = tfv.z();    
-
-        nav_msgs::msg::Odometry odom_msg;
-
-        odom_msg.header.frame_id = DEFAULT_ODOM_FRAME_ID;
-        odom_msg.child_frame_id = FRAME_ID(POSE);
-        odom_msg.header.stamp = t;
-        odom_msg.pose.pose = pose_msg.pose;
-        odom_msg.pose.covariance = {cov_pose, 0, 0, 0, 0, 0,
-                                    0, cov_pose, 0, 0, 0, 0,
-                                    0, 0, cov_pose, 0, 0, 0,
-                                    0, 0, 0, cov_twist, 0, 0,
-                                    0, 0, 0, 0, cov_twist, 0,
-                                    0, 0, 0, 0, 0, cov_twist};
-        odom_msg.twist.twist.linear = v_msg.vector;
-        odom_msg.twist.twist.angular = om_msg.vector;
-        odom_msg.twist.covariance ={cov_pose, 0, 0, 0, 0, 0,
-                                    0, cov_pose, 0, 0, 0, 0,
-                                    0, 0, cov_pose, 0, 0, 0,
-                                    0, 0, 0, cov_twist, 0, 0,
-                                    0, 0, 0, 0, cov_twist, 0,
-                                    0, 0, 0, 0, 0, cov_twist};
-        _odom_publisher->publish(odom_msg);
-        ROS_DEBUG("Publish %s stream", rs2_stream_to_string(frame.get_profile().stream_type()));
-    }
-}
