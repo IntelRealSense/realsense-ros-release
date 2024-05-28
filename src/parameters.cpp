@@ -23,6 +23,7 @@ void BaseRealSenseNode::getParameters()
     ROS_INFO("getParameters...");
 
     std::string param_name;
+
     param_name = std::string("camera_name");
     _camera_name = _parameters->setParam<std::string>(param_name, "camera");
     _parameters_names.push_back(param_name);
@@ -46,6 +47,17 @@ void BaseRealSenseNode::getParameters()
     _parameters->setParamT(param_name, _sync_frames);
     _parameters_names.push_back(param_name);
 
+    param_name = std::string("enable_rgbd");
+    _parameters->setParamT(param_name, _enable_rgbd, [this](const rclcpp::Parameter& )
+    {
+        {
+            std::lock_guard<std::mutex> lock_guard(_profile_changes_mutex);
+            _is_profile_changed = true;
+        }
+        _cv_mpc.notify_one();
+    });
+    _parameters_names.push_back(param_name);
+
     param_name = std::string("json_file_path");
     _json_file_path = _parameters->setParam<std::string>(param_name, "");
     _parameters_names.push_back(param_name);
@@ -66,14 +78,28 @@ void BaseRealSenseNode::getParameters()
     _hold_back_imu_for_frames = _parameters->setParam<bool>(param_name, HOLD_BACK_IMU_FOR_FRAMES);
     _parameters_names.push_back(param_name);
 
-    param_name = std::string("publish_odom_tf");
-    _publish_odom_tf = _parameters->setParam<bool>(param_name, PUBLISH_ODOM_TF);
-    _parameters_names.push_back(param_name);
-
     param_name = std::string("base_frame_id");
     _base_frame_id = _parameters->setParam<std::string>(param_name, DEFAULT_BASE_FRAME_ID);
     _base_frame_id = (static_cast<std::ostringstream&&>(std::ostringstream() << _camera_name << "_" << _base_frame_id)).str();
     _parameters_names.push_back(param_name);
+
+#if defined (ACCELERATE_GPU_WITH_GLSL)
+    param_name = std::string("accelerate_gpu_with_glsl");
+     _parameters->setParam<bool>(param_name, false, 
+                    [this](const rclcpp::Parameter& parameter)
+                    {
+                        bool temp_value = parameter.get_value<bool>();
+                        if (_accelerate_gpu_with_glsl != temp_value)
+                        {
+                            _accelerate_gpu_with_glsl = temp_value;
+                            std::lock_guard<std::mutex> lock_guard(_profile_changes_mutex);
+                            _is_accelerate_gpu_with_glsl_changed = true;
+                        }
+                        _cv_mpc.notify_one();
+                    });
+    _parameters_names.push_back(param_name);
+#endif
+
 }
 
 void BaseRealSenseNode::setDynamicParams()
@@ -124,6 +150,8 @@ void BaseRealSenseNode::setDynamicParams()
                             [this](const rclcpp::Parameter& parameter)
                             {
                                 _imu_sync_method = imu_sync_method(parameter.get_value<int>());
+                                ROS_WARN("For the 'unite_imu_method' param update to take effect, "
+                                         "re-enable either gyro or accel stream.");
                             }, crnt_descriptor);
     _parameters_names.push_back(param_name);
 }
