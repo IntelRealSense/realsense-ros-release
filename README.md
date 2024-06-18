@@ -1,3 +1,29 @@
+## realsense2_camera (jazzy) - 4.55.1-2
+
+The packages in the `realsense2_camera` repository were released into the `jazzy` distro by running `/usr/bin/bloom-release --ros-distro jazzy --track jazzy realsense2_camera --edit -d` on `Tue, 18 Jun 2024 16:54:46 -0000`
+
+These packages were released:
+- `realsense2_camera`
+- `realsense2_camera_msgs`
+- `realsense2_description`
+
+Version of package(s) in repository `realsense2_camera`:
+
+- upstream repository: https://github.com/IntelRealSense/realsense-ros.git
+- release repository: https://github.com/IntelRealSense/realsense-ros-release.git
+- rosdistro version: `4.55.1-1`
+- old version: `4.55.1-1`
+- new version: `4.55.1-2`
+
+Versions of tools used:
+
+- bloom version: `0.12.0`
+- catkin_pkg version: `1.0.0`
+- rosdep version: `0.24.0`
+- rosdistro version: `0.9.1`
+- vcstools version: `0.1.42`
+
+
 ## realsense2_camera (jazzy) - 4.55.1-1
 
 The packages in the `realsense2_camera` repository were released into the `jazzy` distro by running `/usr/bin/bloom-release --ros-distro jazzy --track jazzy realsense2_camera --edit -d --new-track` on `Tue, 18 Jun 2024 13:53:10 -0000`
