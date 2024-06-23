@@ -170,7 +170,7 @@ tracks:
       :{release_inc} --os-name fedora
     - git-bloom-generate -y rosrpm --prefix release/:{ros_distro} :{ros_distro} -i
       :{release_inc} --os-name rhel
-    devel_branch: ros2-development
+    devel_branch: ros2-master
     last_version: 4.55.1
     name: upstream
     patches: null
