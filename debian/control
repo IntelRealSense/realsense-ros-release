@@ -1,0 +1,12 @@
+Source: ros-jazzy-realsense2-camera-msgs
+Section: misc
+Priority: optional
+Maintainer: LibRealSense ROS Team <librs.ros@intel.com>
+Build-Depends: debhelper (>= 9.0.0), ros-jazzy-ament-cmake, ros-jazzy-ament-lint-common <!nocheck>, ros-jazzy-builtin-interfaces, ros-jazzy-rosidl-default-generators, ros-jazzy-sensor-msgs, ros-jazzy-std-msgs, ros-jazzy-ros-workspace, ros-jazzy-rosidl-typesupport-fastrtps-c, ros-jazzy-rosidl-typesupport-fastrtps-cpp
+Homepage: http://www.ros.org/wiki/RealSense
+Standards-Version: 3.9.2
+
+Package: ros-jazzy-realsense2-camera-msgs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, ros-jazzy-builtin-interfaces, ros-jazzy-rosidl-default-runtime, ros-jazzy-sensor-msgs, ros-jazzy-std-msgs, ros-jazzy-ros-workspace
+Description: RealSense camera_msgs package containing realsense camera messages definitions
